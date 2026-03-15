@@ -1,11 +1,13 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.ticketingmaster.ticketplusserver.model;
 
 import jakarta.persistence.*;
-
+/**
+ * Clase Usuari que conforma l'entitat usuari per fer LOGIN, de moment
+ * nomes conforma les dades nom del usuari i contrasenya, pero mes 
+ * endavant sera suceptible de canvi.
+ * @author David
+ */
 @Entity
 @Table(name = "users")
 public class Usuari {

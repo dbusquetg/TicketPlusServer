@@ -1,11 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
+
 package com.ticketingmaster.ticketplusserver.controller;
 
 /**
- *
+ * Clase que conforma la resposta al login, fomada per una booleana que retorna si ha
+ * tingut éxit o no en forma de true o false, i un missatge per donar mes context a la resposta.
  * @author David
  */
 public class LoginResposta {
