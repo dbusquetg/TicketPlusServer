@@ -5,7 +5,7 @@ package com.ticketingmaster.ticketplusserver.controller;
  * Clase que conforma la petició de login, formada per un nom d'usuari i una contrasenya.
  * @author David
  */
-public class LoginPeticio {
+public class LoginRequest {
 
     private String nomusuari;
     private String contrasenya;

@@ -9,12 +9,12 @@ import org.springframework.web.bind.annotation.*;
  */
 @RestController
 @RequestMapping("/api")
-public class AuthControlador {
+public class AuthController {
 
-    private final ServAuth authServei;
+    private final ServAuth authService;
 
-    public AuthControlador(ServAuth authService) {
-        this.authServei = authService;
+    public AuthController(ServAuth authService) {
+        this.authService = authService;
     }
     /**
      * Funció que rep una petició en forma de LoginPetició i retorna si  es valida o no
@@ -23,17 +23,17 @@ public class AuthControlador {
      * @return LoginResposta.
      */
     @PostMapping("/login")
-    public LoginResposta login(@RequestBody LoginPeticio request) {
+    public LoginResponse login(@RequestBody LoginRequest request) {
 
-        boolean valid = authServei.login(
+        boolean valid = authService.login(
                 request.getNomusuari(),
                 request.getContrasenya()
         );
 
         if (valid) {
-            return new LoginResposta(true, "Login correcto");
+            return new LoginResponse(true, "Login correcto");
         } else {
-            return new LoginResposta(false, "Credenciales incorrectas");
+            return new LoginResponse(false, "Credenciales incorrectas");
         }
     }
 }

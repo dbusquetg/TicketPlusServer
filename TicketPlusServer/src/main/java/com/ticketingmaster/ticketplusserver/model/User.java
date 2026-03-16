@@ -10,31 +10,30 @@ import jakarta.persistence.*;
  */
 @Entity
 @Table(name = "users")
-public class Usuari {
+public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String nomusuari;
-    private String contrasenya;
-
-    public String getNomusuari() {
-        return nomusuari;
-    }
-
-    public void setNomusuari(String nomusuari) {
-        this.nomusuari = nomusuari;
-    }
-
-    public String getContrasenya() {
-        return contrasenya;
-    }
-
-    public void setContrasenya(String contrasenya) {
-        this.contrasenya = contrasenya;
-    }
+    private String user;
+    private String password;
     
-    
+
+    public String getUser() {
+        return user;
+    }
+
+    public void setUser(String user) {
+        this.user = user;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 
 }
