@@ -46,10 +46,7 @@ public class AuthController {
     @PostMapping("/logout")
     public LogoutResponse logout(@RequestBody LogoutRequest request) {
 
-        boolean valid = authService.logout(
-                request.getUser(),
-                request.getRole()
-        );
+        boolean valid = authService.logout(request.getIdSession());
 
         if (valid) {
             return new LogoutResponse("Logout exitoso");

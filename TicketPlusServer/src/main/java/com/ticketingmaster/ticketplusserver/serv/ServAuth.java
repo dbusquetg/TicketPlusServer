@@ -32,14 +32,13 @@ public class ServAuth {
         return usr.get().getPassword().equals(password);
     }
     
-     public boolean logout(String user, String role) {
+     public boolean logout(String idSession) {
 
-        Optional<User> usr = userRepository.findByName(user);
+        Optional<User> usr = userRepository.findById(idSession);
 
         if (usr == null) {
             return false;
         }
-
-        return usr.get().getRole().equals(role);
+        else return true;
     }
 }

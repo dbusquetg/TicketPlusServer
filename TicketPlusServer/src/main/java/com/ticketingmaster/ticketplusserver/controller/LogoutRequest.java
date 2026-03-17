@@ -9,27 +9,18 @@ package com.ticketingmaster.ticketplusserver.controller;
  * @author David
  */
 public class LogoutRequest {
-    private String user;
-    private String role;
+    private String idSession;
 
-    public LogoutRequest(String user, String role) {
-        this.user = user;
-        this.role = role;
+    public LogoutRequest(String idSession) {
+        this.idSession = idSession;
+    }
+
+    public String getIdSession() {
+        return idSession;
+    }
+
+    public void setIdSession(String idSession) {
+        this.idSession = idSession;
     }
     
-    public String getUser() {
-        return user;
-    }
-
-    public void setUser(String user) {
-        this.user = user;
-    }
-
-    public String getRole() {
-        return role;
-    }
-
-    public void setRole(String role) {
-        this.role = role;
-    }
 }
