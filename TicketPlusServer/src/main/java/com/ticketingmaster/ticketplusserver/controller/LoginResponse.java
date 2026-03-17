@@ -11,9 +11,9 @@ public class LoginResponse {
     private boolean success;
     private String message;
 
-    public LoginResponse(boolean exit, String missatge) {
+    public LoginResponse(boolean exit, String message) {
         this.success = exit;
-        this.message = missatge;
+        this.message = message;
     }
 
     public boolean isSuccess() {

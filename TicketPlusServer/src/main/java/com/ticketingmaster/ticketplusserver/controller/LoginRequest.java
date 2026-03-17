@@ -7,24 +7,24 @@ package com.ticketingmaster.ticketplusserver.controller;
  */
 public class LoginRequest {
 
-    private String nomusuari;
-    private String contrasenya;
+    private String user;
+    private String password;
 
-    public String getNomusuari() {
-        return nomusuari;
+    public String getUser() {
+        return user;
     }
 
-    public void setNomusuari(String nomusuari) {
-        this.nomusuari = nomusuari;
+    public void setUser(String user) {
+        this.user = user;
     }
 
-    public String getContrasenya() {
-        return contrasenya;
+    public String getPassword() {
+        return password;
     }
 
-    public void setContrasenya(String contrasenya) {
-        this.contrasenya = contrasenya;
+    public void setPassword(String password) {
+        this.password = password;
     }
-
+   
   
 }

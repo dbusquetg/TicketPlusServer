@@ -26,8 +26,8 @@ public class AuthController {
     public LoginResponse login(@RequestBody LoginRequest request) {
 
         boolean valid = authService.login(
-                request.getNomusuari(),
-                request.getContrasenya()
+                request.getUser(),
+                request.getPassword()
         );
 
         if (valid) {
@@ -36,4 +36,26 @@ public class AuthController {
             return new LoginResponse(false, "Credenciales incorrectas");
         }
     }
+    
+    /**
+     * Funció que rep una petició en forma de LoginPetició i retorna si  es valida o no
+     * segons la gestió de l'autenticació del servei.
+     * @param request en forma de login petició.
+     * @return LoginResposta.
+     */
+    @PostMapping("/logout")
+    public LogoutResponse logout(@RequestBody LogoutRequest request) {
+
+        boolean valid = authService.logout(
+                request.getUser(),
+                request.getRole()
+        );
+
+        if (valid) {
+            return new LogoutResponse("Logout exitoso");
+        } else {
+            return new LogoutResponse( "Error en el logout");
+        }
+    }
+    
 }
