@@ -21,15 +21,20 @@ public class ServAuth {
         this.userRepository = userRepository;
     }
 
-    public boolean login(String user, String password) {
+    public Optional<User> login(String name, String password) {
 
-        Optional<User> usr = userRepository.findByName(user);
+        Optional<User> usr = userRepository.findByName(name);
 
-        if (usr == null) {
-            return false;
+        if (usr.isEmpty()) {
+            return Optional.empty();
         }
 
-        return usr.get().getPassword().equals(password);
+        if(!usr.get().getPassword().equals(password)){
+            return usr.empty();
+        }
+        
+        return usr;
+        
     }
     
      public boolean logout(String idSession) {

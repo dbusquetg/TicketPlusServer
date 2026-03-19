@@ -8,28 +8,28 @@ package com.ticketingmaster.ticketplusserver.controller;
  */
 public class LoginResponse {
 
-    private boolean success;
-    private String message;
+    private String id_session;
+    private String role;
 
-    public LoginResponse(boolean exit, String message) {
-        this.success = exit;
-        this.message = message;
+    public LoginResponse(String id_session, String role) {
+        this.id_session = id_session;
+        this.role = role;
     }
 
-    public boolean isSuccess() {
-        return success;
+    public String getId_session() {
+        return id_session;
     }
 
-    public void setSuccess(boolean success) {
-        this.success = success;
-    }
-    
-    public String getMessage() {
-        return message;
+    public void setId_session(String id_session) {
+        this.id_session = id_session;
     }
 
-    public void setMessage(String message) {
-        this.message = message;
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     
