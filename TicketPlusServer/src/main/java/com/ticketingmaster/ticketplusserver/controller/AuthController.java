@@ -1,4 +1,8 @@
 package com.ticketingmaster.ticketplusserver.controller;
+import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
+import com.ticketingmaster.ticketplusserver.dto.LogoutRequest;
+import com.ticketingmaster.ticketplusserver.dto.LoginResponse;
+import com.ticketingmaster.ticketplusserver.dto.LogoutResponse;
 import com.ticketingmaster.ticketplusserver.model.User;
 import com.ticketingmaster.ticketplusserver.serv.ServAuth;
 import java.util.Optional;
@@ -38,7 +42,8 @@ public class AuthController {
         String id_session = String.valueOf(random_number);        
         
         if (!usr.isEmpty()) {
-            return new LoginResponse(id_session, usr.get().getRole());
+            //TODO Role to rolename?
+            return new LoginResponse(id_session, usr.get().getRole().name());
         } else {
             return new LoginResponse("0", "none");
         }

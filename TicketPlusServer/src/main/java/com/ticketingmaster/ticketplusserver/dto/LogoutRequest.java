@@ -2,7 +2,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
-package com.ticketingmaster.ticketplusserver.controller;
+package com.ticketingmaster.ticketplusserver.dto;
 
 /**
  * Clase que conforma la petició de logout, formada per un nom d'usuari i un rol.

@@ -28,8 +28,9 @@ public class ServAuth {
         if (usr.isEmpty()) {
             return Optional.empty();
         }
-
-        if(!usr.get().getPassword().equals(password)){
+        
+        //TODO De Password a PasswordHash
+        if(!usr.get().getPasswordHash().equals(password)){
             return usr.empty();
         }
         

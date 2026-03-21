@@ -1,5 +1,5 @@
 
-package com.ticketingmaster.ticketplusserver.controller;
+package com.ticketingmaster.ticketplusserver.dto;
 
 /**
  * Clase que conforma la petició de login, formada per un nom d'usuari i una contrasenya.

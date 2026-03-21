@@ -1,5 +1,5 @@
 
-package com.ticketingmaster.ticketplusserver.controller;
+package com.ticketingmaster.ticketplusserver.dto;
 
 /**
  * Clase que conforma la resposta al login, fomada per una booleana que retorna si ha
