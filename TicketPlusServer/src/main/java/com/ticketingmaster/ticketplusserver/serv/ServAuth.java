@@ -54,7 +54,7 @@ public class ServAuth {
     
      public void logout(String bearerToken) {
 
-        if(bearerToken == null || !bearerToken.startsWith("brear ")){
+        if(bearerToken == null || !bearerToken.startsWith("Bearer ")){
             return;
         }
         
