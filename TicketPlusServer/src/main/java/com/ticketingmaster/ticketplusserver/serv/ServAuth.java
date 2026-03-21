@@ -1,50 +1,72 @@
 package com.ticketingmaster.ticketplusserver.serv;
 
+import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
+import com.ticketingmaster.ticketplusserver.dto.LoginResponse;
+import com.ticketingmaster.ticketplusserver.model.TokenBlacklist;
 import org.springframework.stereotype.Service;
 import com.ticketingmaster.ticketplusserver.model.User;
+import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
 import com.ticketingmaster.ticketplusserver.repo.UserRepo;
-import java.util.Optional;
+import com.ticketingmaster.ticketplusserver.security.JwtUtil;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 /**
- * Clase que conforma el servei d'autenticació, consta d'un constructor
- * que rep cualsevol clase que implementi la interficie UsuariRepo. Si
- * el nom d'usuari no conincideix amb ningun aquesta retorna false, i sino
- * compara les contraseñes per donar una resposta valida o no al tipus de LOGIN.
+ * TODO completar informacion de la clase.
+ * 
  * @author David
  */
 @Service
 public class ServAuth {
 
     private final UserRepo userRepository;
+    private final TokenBlacklistRepository blacklistRepository;
+    private final JwtUtil jwtUtil;
+    private final AuthenticationManager authenticationManager;
 
-    public ServAuth(UserRepo userRepository) {
+    public ServAuth(UserRepo userRepository, TokenBlacklistRepository blacklistRepository,
+            JwtUtil jwtUtil, AuthenticationManager authenticationManager) {
         this.userRepository = userRepository;
+        this.blacklistRepository = blacklistRepository;
+        this.jwtUtil = jwtUtil;
+        this.authenticationManager = authenticationManager;
     }
 
-    public Optional<User> login(String name, String password) {
-
-        Optional<User> usr = userRepository.findByName(name);
-
-        if (usr.isEmpty()) {
-            return Optional.empty();
-        }
+    public LoginResponse login(LoginRequest request) {
         
-        //TODO De Password a PasswordHash
-        if(!usr.get().getPasswordHash().equals(password)){
-            return usr.empty();
-        }
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
         
-        return usr;
+        User usr = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        
+        String token = jwtUtil.generateToken(usr);
+        
+        return new LoginResponse(token, usr.getRole().name(), usr.getUsername());
         
     }
     
-     public boolean logout(String idSession) {
+     public void logout(String bearerToken) {
 
-        Optional<User> usr = userRepository.findById(idSession);
-
-        if (usr == null) {
-            return false;
+        if(bearerToken == null || !bearerToken.startsWith("brear ")){
+            return;
         }
-        else return true;
+        
+        String token = bearerToken.substring(7);
+        
+        if(jwtUtil.isTokenValid(token)){
+            LocalDateTime expiresAt = jwtUtil.extractExpiration(token)
+                    .toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+            
+            blacklistRepository.save(new TokenBlacklist(token, expiresAt));
+        }
     }
 }

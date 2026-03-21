@@ -30,7 +30,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Solo crea los usuarios si no existen ya en la BBDD
-        if (!userRepository.existsByName("admin")) {
+        if (!userRepository.existsByUsername("admin")) {
             User admin = new User(
                 "admin",
                 passwordEncoder.encode("admin123"),  // Hash generado por Spring
@@ -40,7 +40,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Usuario 'admin' creado.");
         }
 
-        if (!userRepository.existsByName("user1")) {
+        if (!userRepository.existsByUsername("user1")) {
             User user = new User(
                 "user1",
                 passwordEncoder.encode("admin123"),

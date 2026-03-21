@@ -17,7 +17,7 @@ public class User {
     private Long id;
     
     @Column(unique = true, nullable = false, length = 50)
-    private String name;
+    private String username;
     
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
@@ -32,8 +32,8 @@ public class User {
     public User() {}
     
      // ─── Constructors ─────────────────────────────────────────
-    public User(String name, String passwordHash, Role role) {
-        this.name     = name;
+    public User(String username, String passwordHash, Role role) {
+        this.username     = username;
         this.passwordHash = passwordHash;
         this.role         = role;
     }
@@ -43,8 +43,8 @@ public class User {
     public Long getId()                        { return id; }
     public void setId(Long id)                 { this.id = id; }
 
-    public String getName()                { return name; }
-    public void setName(String username)   { this.name = username; }
+    public String getUsername()                { return username; }
+    public void setUsername(String username)   { this.username = username; }
 
     public String getPasswordHash()            { return passwordHash; }
     public void setPasswordHash(String hash)   { this.passwordHash = hash; }

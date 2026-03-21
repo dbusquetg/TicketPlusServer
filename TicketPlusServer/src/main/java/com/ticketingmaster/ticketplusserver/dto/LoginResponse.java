@@ -8,20 +8,23 @@ package com.ticketingmaster.ticketplusserver.dto;
  */
 public class LoginResponse {
 
-    private String id_session;
+    private String token;
     private String role;
 
-    public LoginResponse(String id_session, String role) {
-        this.id_session = id_session;
+    private String username;
+
+    public LoginResponse(String token, String role, String username) {
+        this.token = token;
         this.role = role;
+        this.username = username;
     }
 
-    public String getId_session() {
-        return id_session;
+    public String getToken() {
+        return token;
     }
 
-    public void setId_session(String id_session) {
-        this.id_session = id_session;
+    public void setToken(String token) {
+        this.token = token;
     }
 
     public String getRole() {
@@ -30,6 +33,14 @@ public class LoginResponse {
 
     public void setRole(String role) {
         this.role = role;
+    }
+    
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     

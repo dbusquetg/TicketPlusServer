@@ -1,12 +1,10 @@
 package com.ticketingmaster.ticketplusserver.controller;
 import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
-import com.ticketingmaster.ticketplusserver.dto.LogoutRequest;
 import com.ticketingmaster.ticketplusserver.dto.LoginResponse;
-import com.ticketingmaster.ticketplusserver.dto.LogoutResponse;
-import com.ticketingmaster.ticketplusserver.model.User;
 import com.ticketingmaster.ticketplusserver.serv.ServAuth;
-import java.util.Optional;
-import java.util.Random;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 
 import org.springframework.web.bind.annotation.*;
 /**
@@ -15,7 +13,7 @@ import org.springframework.web.bind.annotation.*;
  * @author David
  */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/auth")
 public class AuthController {
 
     private final ServAuth authService;
@@ -24,47 +22,39 @@ public class AuthController {
         this.authService = authService;
     }
     /**
-     * Funció que rep una petició en forma de LoginPetició i retorna si  es valida o no
+     * Funció que rep una petició en forma de LoginRequest i retorna si  es valida o no
      * segons la gestió de l'autenticació del servei.
      * @param request en forma de login petició.
-     * @return LoginResposta.
+     * @return ResponseEntity
      */
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        Optional<User> usr = authService.login(
-                request.getName(),
-                request.getPassword()
-        );
-
-        Random random = new Random();
-        int random_number = random.nextInt(9999);
-        String id_session = String.valueOf(random_number);        
-        
-        if (!usr.isEmpty()) {
-            //TODO Role to rolename?
-            return new LoginResponse(id_session, usr.get().getRole().name());
-        } else {
-            return new LoginResponse("0", "none");
+        try{
+            LoginResponse response = authService.login(request);
+            return ResponseEntity.ok(response);
+        }catch(DisabledException e){
+            return ResponseEntity.status(403).body("Usuario deshabilitado");
+        }catch(BadCredentialsException e){
+            return ResponseEntity.status(401).body("Credenciales incorrectas");
+        }catch(Exception e){
+            return ResponseEntity.status(500).body("Error del servidor");
         }
+        
+        
     }
     
     /**
-     * Funció que rep una petició en forma de LoginPetició i retorna si  es valida o no
-     * segons la gestió de l'autenticació del servei.
-     * @param request en forma de login petició.
-     * @return LoginResposta.
+     * Funció que revisa el Header de la peticio per llegir el token y afegirlo al blacklist
+     * @param bearerToken 
+     * @return ResponseEntity.
      */
     @PostMapping("/logout")
-    public LogoutResponse logout(@RequestBody LogoutRequest request) {
+    public ResponseEntity<?> logout(@RequestHeader("Authorization") String bearerToken) {
 
-        boolean valid = authService.logout(request.getIdSession());
-
-        if (valid) {
-            return new LogoutResponse("Logout exitoso");
-        } else {
-            return new LogoutResponse( "Error en el logout");
-        }
+        authService.logout(bearerToken);
+        return ResponseEntity.noContent().build(); 
+        
     }
     
 }
