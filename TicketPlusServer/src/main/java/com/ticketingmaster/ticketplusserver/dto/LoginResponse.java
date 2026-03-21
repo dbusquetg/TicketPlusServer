@@ -2,8 +2,8 @@
 package com.ticketingmaster.ticketplusserver.dto;
 
 /**
- * Clase que conforma la resposta al login, fomada per una booleana que retorna si ha
- * tingut éxit o no en forma de true o false, i un missatge per donar mes context a la resposta.
+ * Clase que conforma la respuesta al login, formada por una booleana que devuelve si ha
+ * tenido éxito o no en forma de true o false, y un mensaje para dar más contexto a la respuesta.
  * @author David
  */
 public class LoginResponse {
@@ -12,7 +12,11 @@ public class LoginResponse {
     private String role;
 
     private String username;
-
+    
+    /**
+     * Constructor que recibe un token, un rol y un nombre de usuario para 
+     * devolverlos como respuesta
+     */
     public LoginResponse(String token, String role, String username) {
         this.token = token;
         this.role = role;

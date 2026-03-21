@@ -4,9 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.ticketingmaster.ticketplusserver.model.User;
 import java.util.Optional;
 /**
- * Interficie de la clase Usuari per al repositori. Implementa la funció
- * buscaPerNomUsuari per poder buscar usuaris segons la seva clau primari.
- * @author David
+ * Interfaz de la clase Usuario para el repositorio. Implementa la función
+ * findByUsername para poder buscar usuarios según su clave primaria, y una 
+ * función para comprobar si el usuario existe.
  */
 public interface UserRepo extends JpaRepository<User, Long> {
 

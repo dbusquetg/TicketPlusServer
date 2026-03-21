@@ -25,13 +25,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final TokenBlacklistRepository blacklistRepository;
-
+    /**
+     * Constructor que consta de jwUtil y blacklist repository.
+     * @param jwtUtil
+     * @param blacklistRepository 
+     */
     public JwtAuthFilter(JwtUtil jwtUtil,
                          TokenBlacklistRepository blacklistRepository) {
         this.jwtUtil             = jwtUtil;
         this.blacklistRepository = blacklistRepository;
     }
-
+    
+    /**
+     * Función que ejecuta el filtro interno para el logout y gestiona
+     * la blacklist.
+     * @throws ServletException
+     * @throws IOException 
+     */
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

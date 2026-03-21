@@ -9,7 +9,11 @@ import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-
+/**
+ * Clase polivalente que controla funciones varias derivadas de Jwt, tanto generación de 
+ * llaves, como generación de tokens, extracción de peticiones, nombres de
+ * usuario, roles, y validación de tokens.
+ */
 @Component
 public class JwtUtil {
 

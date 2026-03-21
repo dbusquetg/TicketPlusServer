@@ -8,23 +8,25 @@ import org.springframework.security.authentication.DisabledException;
 
 import org.springframework.web.bind.annotation.*;
 /**
- * Classe AuthControlador classe que controla les validacions y retorna les respostes de login si son correctes
- * o incorrectes.
- * @author David
+ * Classe AuthControlador controla las validaciones y devuelve las respuestas del login si son correctas.
+ * o incorrectas.
  */
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
 
     private final ServAuth authService;
-
+    /**
+     * Constructor recibe un AuthService como servicio de autenticación.
+     * @param authService 
+     */
     public AuthController(ServAuth authService) {
         this.authService = authService;
     }
     /**
-     * Funció que rep una petició en forma de LoginRequest i retorna si  es valida o no
-     * segons la gestió de l'autenticació del servei.
-     * @param request en forma de login petició.
+     * Función que recibe una petición en forma de LoginRequest y devuelve si se valida o no
+     * según la gestión de la autenticación del servicio.
+     * @param request en forma de login petición.
      * @return ResponseEntity
      */
     @PostMapping("/login")
@@ -45,7 +47,7 @@ public class AuthController {
     }
     
     /**
-     * Funció que revisa el Header de la peticio per llegir el token y afegirlo al blacklist
+     * Función que revisa el Header de la peticion para leer el token y añadirlo al blacklist
      * @param bearerToken 
      * @return ResponseEntity.
      */

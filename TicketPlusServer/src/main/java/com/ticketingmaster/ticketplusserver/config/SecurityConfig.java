@@ -21,7 +21,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
+/**
+ * Clase que engloba la configuración de seguridad del servicio JWT Token
+ */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity           // Permite usar @PreAuthorize en los controllers
@@ -29,13 +31,28 @@ public class SecurityConfig {
 
     private final JwtAuthFilter          jwtAuthFilter;
     private final UserDetailsServiceImpl userDetailsService;
-
+    
+    /**
+     * Constructor del SecurityConfig, recibe el filtro JWT y los detalles del
+     * usuario en formato.
+     * @param jwtAuthFilter
+     * @param userDetailsService 
+     */
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           UserDetailsServiceImpl userDetailsService) {
         this.jwtAuthFilter    = jwtAuthFilter;
         this.userDetailsService = userDetailsService;
     }
-
+    
+    /**
+     * Recibe un HttpSecurity y devuelve la cadena de filtro de seguridad.
+     * Desactiva CSRF para API Stateless, aplica reglas de acceso, implementa el
+     * proveedor de autenticación BCrypt y añade el filtro JWT junto con el Spring
+     * security.
+     * @param HttpSecurity http
+     * @return SecurityFilterChain
+     * @throws Exception 
+     */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -60,7 +77,12 @@ public class SecurityConfig {
 
         return http.build();
     }
-
+    
+    /**
+     * Devuelve un AuthenticationProvider con los detalles del usuario y password
+     * encoder.
+     * @return AuthenticationProvider
+     */
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
@@ -68,13 +90,22 @@ public class SecurityConfig {
         provider.setPasswordEncoder(passwordEncoder());
         return provider;
     }
-
+    /**
+     * Devueluve un AutenticationManager cuando se le pasa un AutenthicationConfiguration.
+     * @param config
+     * @return AuthenticationManager
+     * @throws Exception 
+     */
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
-
+    
+    /**
+     * Devuelve un PasswordEncoder como BCrypt password encoder.
+     * @return PasswordEncoder
+     */
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

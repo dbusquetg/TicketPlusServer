@@ -12,8 +12,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 /**
- *
- * @author Christian
+ *Clase que controla el servicio de inicialización de datos, si existen
+ * en la BD o no.
  */
 @Component
 public class DataInitializer implements CommandLineRunner {

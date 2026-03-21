@@ -14,8 +14,9 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 
 /**
- * TODO completar informacion de la clase.
- * 
+ * Clase que conforma el Servicio de Autenticación. Gestiona las respuestas de
+ * login y las de logout. Consta del repositorio de usuario, el token para 
+ * la lista negra, una instancia de JwtUtil y el gestor de autenticaciones.
  * @author David
  */
 @Service
@@ -33,7 +34,12 @@ public class ServAuth {
         this.jwtUtil = jwtUtil;
         this.authenticationManager = authenticationManager;
     }
-
+    
+    /**
+     * Función para gestionar el login del usuariol.
+     * @param request
+     * @return Una respuesta en forma de LoginResponse
+     */
     public LoginResponse login(LoginRequest request) {
         
         authenticationManager.authenticate(
@@ -51,7 +57,11 @@ public class ServAuth {
         return new LoginResponse(token, usr.getRole().name(), usr.getUsername());
         
     }
-    
+        /**
+         * Función para gestionar el logout del usuario e insertar tokens
+         * en la lista negra.
+         * @param bearerToken 
+         */
      public void logout(String bearerToken) {
 
         if(bearerToken == null || !bearerToken.startsWith("Bearer ")){

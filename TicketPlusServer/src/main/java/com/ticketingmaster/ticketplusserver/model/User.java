@@ -3,10 +3,10 @@ package com.ticketingmaster.ticketplusserver.model;
 
 import jakarta.persistence.*;
 /**
- * Clase Usuari que conforma l'entitat usuari per fer LOGIN, de moment
- * nomes conforma les dades nom del usuari i contrasenya, pero mes 
- * endavant sera suceptible de canvi.
- * @author David
+ * Clase Usuario que conforma la entidad usuario para realizar LOGIN, conforma
+ * los datos id del inicio de sesión, el nombre de usuario como usaername, un
+ * hash del password para no almacenarlo en texto plano, un rol, y si esta 
+ * activo o no.
  */
 @Entity
 @Table(name = "users")

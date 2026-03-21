@@ -18,7 +18,12 @@ import java.util.List;
  */
 @Configuration
 public class CorsConfig {
-
+    /**
+     * Constructor corsfilter que configura y devuelve un objeto CorsFilter para
+     * las funciones permitidas y las cabeceras permitidas, asi como credenciales
+     * y patrones.
+     * @return 
+     */
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();

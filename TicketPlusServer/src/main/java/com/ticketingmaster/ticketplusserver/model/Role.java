@@ -3,7 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.ticketingmaster.ticketplusserver.model;
-
+/**
+ * Lista de roles definidos como una enumeración.
+ * @author David
+ */
 public enum Role {
     ADMIN,
     USER

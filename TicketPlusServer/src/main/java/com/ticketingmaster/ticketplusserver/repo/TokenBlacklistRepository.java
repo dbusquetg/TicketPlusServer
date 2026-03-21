@@ -7,7 +7,9 @@ package com.ticketingmaster.ticketplusserver.repo;
 import com.ticketingmaster.ticketplusserver.model.TokenBlacklist;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
-
+/**
+ * Interface que conforma el repositorio de tokens en la lista negra.
+ */
 public interface TokenBlacklistRepository extends JpaRepository<TokenBlacklist, String> {
 
     boolean existsByTokenHash(String tokenHash);
