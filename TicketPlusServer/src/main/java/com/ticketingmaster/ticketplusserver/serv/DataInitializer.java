@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ticketingmaster.ticketplusserver.serv;
 
 import com.ticketingmaster.ticketplusserver.model.Role;
@@ -20,13 +16,22 @@ public class DataInitializer implements CommandLineRunner {
 
     private final UserRepo userRepository;
     private final PasswordEncoder passwordEncoder;
-
+    
+    /**
+     *  Constructor que recibe Repositorio de Usuario y un Password Encoder.
+     * @param userRepository
+     * @param passwordEncoder 
+     */
     public DataInitializer(UserRepo userRepository,
                            PasswordEncoder passwordEncoder) {
         this.userRepository  = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
-
+    
+    /**
+     * Run que inicializa el Data Initializer, se pasan argumentos en forma de String.
+     * @param args 
+     */
     @Override
     public void run(String... args) {
         // Solo crea los usuarios si no existen ya en la BBDD

@@ -1,9 +1,7 @@
-
 package com.ticketingmaster.ticketplusserver.dto;
 
 /**
  * Clase que conforma la petición de login, formada por un nombre de usuario y contraseña.
- * @author David
  */
 public class LoginRequest {
 

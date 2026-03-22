@@ -1,4 +1,3 @@
-
 package com.ticketingmaster.ticketplusserver.model;
 
 import jakarta.persistence.*;
