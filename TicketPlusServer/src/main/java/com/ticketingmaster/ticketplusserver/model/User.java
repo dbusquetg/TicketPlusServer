@@ -6,6 +6,7 @@ import jakarta.persistence.*;
  * los datos id del inicio de sesión, el nombre de usuario como usaername, un
  * hash del password para no almacenarlo en texto plano, un rol, y si esta 
  * activo o no.
+ * @author David Busquet
  */
 @Entity
 @Table(name = "users")
@@ -30,14 +31,17 @@ public class User {
     
     public User() {}
     
-     // ─── Constructors ─────────────────────────────────────────
+    /**
+     * Constructor para el usuario con parametros necesarios.
+     * @param username Nombre de usuario.
+     * @param passwordHash Hash de la password.
+     * @param role Rol que se le da.
+     */
     public User(String username, String passwordHash, Role role) {
         this.username     = username;
         this.passwordHash = passwordHash;
         this.role         = role;
     }
-
-    // ─── Getters & Setters ────────────────────────────────────
 
     public Long getId()                        { return id; }
     public void setId(Long id)                 { this.id = id; }

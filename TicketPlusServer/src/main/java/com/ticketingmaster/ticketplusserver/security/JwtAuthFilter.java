@@ -19,6 +19,7 @@ import java.util.List;
  * Extrae el JWT del header Authorization, lo valida,
  * comprueba que no esté en la blacklist y establece
  * la autenticación en el SecurityContext.
+ * @author David Busquet
  */
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
@@ -27,8 +28,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     private final TokenBlacklistRepository blacklistRepository;
     /**
      * Constructor que consta de jwUtil y blacklist repository.
-     * @param jwtUtil
-     * @param blacklistRepository 
+     * @param jwtUtil Instancia utilitaria de jwtUtil
+     * @param blacklistRepository Repositorio de la blacklist.
      */
     public JwtAuthFilter(JwtUtil jwtUtil,
                          TokenBlacklistRepository blacklistRepository) {
@@ -39,8 +40,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     /**
      * Función que ejecuta el filtro interno para el logout y gestiona
      * la blacklist.
-     * @throws ServletException
-     * @throws IOException 
+     * @param request Solcitud en forma de HttpServletRequest
+     * @param response Respuesta en forma de HttpServletResponse
+     * @param filterChain Filtro de cadena
+     * @throws ServletException Excepción de Servlet
+     * @throws IOException Excepcion de IOE
      */
     @Override
     protected void doFilterInternal(HttpServletRequest request,

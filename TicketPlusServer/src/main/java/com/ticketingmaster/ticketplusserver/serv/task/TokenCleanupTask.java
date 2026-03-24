@@ -11,7 +11,8 @@ import java.time.LocalDateTime;
  * Tarea programada que limpia automáticamente los tokens
  * expirados de la blacklist para evitar que la tabla crezca
  * indefinidamente.
- *
+ *@author David Busquet
+ * 
  * Se ejecuta cada hora (3 600 000 ms).
  * Requiere @EnableScheduling en ServerApplication.
  */

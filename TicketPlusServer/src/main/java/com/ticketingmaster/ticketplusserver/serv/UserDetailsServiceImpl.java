@@ -11,6 +11,7 @@ import java.util.List;
 /**
  * Implementación de UserDetailsService usada por Spring Security
  * para cargar los datos del usuario durante la autenticación.
+ * @author David Busquet
  */
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {

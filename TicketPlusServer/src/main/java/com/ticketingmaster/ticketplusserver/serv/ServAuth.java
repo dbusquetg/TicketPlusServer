@@ -17,7 +17,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
  * Clase que conforma el Servicio de Autenticación. Gestiona las respuestas de
  * login y las de logout. Consta del repositorio de usuario, el token para 
  * la lista negra, una instancia de JwtUtil y el gestor de autenticaciones.
- * @author David
+ * @author David Busquet
  */
 @Service
 public class ServAuth {
@@ -37,7 +37,7 @@ public class ServAuth {
     
     /**
      * Función para gestionar el login del usuariol.
-     * @param request
+     * @param request Solicitud en formato LoginRequest
      * @return Una respuesta en forma de LoginResponse
      */
     public LoginResponse login(LoginRequest request) {
@@ -60,7 +60,7 @@ public class ServAuth {
         /**
          * Función para gestionar el logout del usuario e insertar tokens
          * en la lista negra.
-         * @param bearerToken 
+         * @param bearerToken Token del portador.
          */
      public void logout(String bearerToken) {
 

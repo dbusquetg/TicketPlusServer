@@ -19,6 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 /**
  * Clase que engloba la configuración de seguridad del servicio JWT Token
+ * @author David Busquet
  */
 @Configuration
 @EnableWebSecurity
@@ -31,8 +32,8 @@ public class SecurityConfig {
     /**
      * Constructor del SecurityConfig, recibe el filtro JWT y los detalles del
      * usuario en formato.
-     * @param jwtAuthFilter
-     * @param userDetailsService 
+     * @param jwtAuthFilter Filtro JWT en formato jwtAuthFilter.
+     * @param userDetailsService  Detalles del servicio de usuario en formato userDetalsService.
      */
     public SecurityConfig(JwtAuthFilter jwtAuthFilter,
                           UserDetailsServiceImpl userDetailsService) {
@@ -45,9 +46,9 @@ public class SecurityConfig {
      * Desactiva CSRF para API Stateless, aplica reglas de acceso, implementa el
      * proveedor de autenticación BCrypt y añade el filtro JWT junto con el Spring
      * security.
-     * @param HttpSecurity http
-     * @return SecurityFilterChain
-     * @throws Exception 
+     * @param http Seguridad HTTP en formato HttpSecutirty.
+     * @return Cadena de filtro de seguridad en formato SecutiryFilterChain
+     * @throws Exception General.
      */
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -77,7 +78,7 @@ public class SecurityConfig {
     /**
      * Devuelve un AuthenticationProvider con los detalles del usuario y password
      * encoder.
-     * @return AuthenticationProvider
+     * @return Proveedor de autenticación en formato AuthenticationProvider.
      */
     @Bean
     public AuthenticationProvider authenticationProvider() {
@@ -88,9 +89,9 @@ public class SecurityConfig {
     }
     /**
      * Devueluve un AutenticationManager cuando se le pasa un AutenthicationConfiguration.
-     * @param config
-     * @return AuthenticationManager
-     * @throws Exception 
+     * @param config Configuración de autenthicación en formato AuthenticationConfiguration.
+     * @return Gestor de autenticaciones AuthenticationManager.
+     * @throws Exception General.
      */
     @Bean
     public AuthenticationManager authenticationManager(
@@ -100,7 +101,7 @@ public class SecurityConfig {
     
     /**
      * Devuelve un PasswordEncoder como BCrypt password encoder.
-     * @return PasswordEncoder
+     * @return Codificador de password en formato PasswordEncoder.
      */
     @Bean
     public PasswordEncoder passwordEncoder() {
