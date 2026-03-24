@@ -26,8 +26,7 @@ import static org.assertj.core.api.Assertions.*;
  *
  * Si PostgreSQL no está arrancado, los tests fallan al iniciar.
  *
- * Coloca este fichero en:
- * src/test/java/com/ticketingmaster/ticketplusserver/
+ * @author David Busquet
  */
 @SpringBootTest
 @Transactional
@@ -36,10 +35,11 @@ class UserRepoIntegrationTest {
     @Autowired
     private UserRepo userRepo;
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  CONEXIÓN
-    // ════════════════════════════════════════════════════════════════════════
-
+    /**
+     * Clase que prueba las conexiones.
+     * - El repositorio está disponible y PostgreSQL responde
+     * - Se puede guardar y recuperar un usuario — BD operativa
+     */
     @Nested
     @DisplayName("Conexión a la base de datos")
     class ConexionTests {
@@ -62,10 +62,12 @@ class UserRepoIntegrationTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  findByUsername
-    // ════════════════════════════════════════════════════════════════════════
-
+    /**
+     * Clase per als tests de troba de usuaris mitjançant FindByUsername.
+     * -Usuario 'admin' existe en BD → devuelve el usuario con rol ADMIN
+     * -Usuario 'user1' existe en BD → devuelve el usuario con rol USER
+     * -Usuario inexistente → devuelve Optional vacío
+     */
     @Nested
     @DisplayName("findByUsername")
     class FindByUsernameTests {
@@ -100,9 +102,12 @@ class UserRepoIntegrationTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  existsByUsername
-    // ════════════════════════════════════════════════════════════════════════
+    /**
+     * Clase dedicada a probar si el existByUsername funciona.
+     * -'admin' existe → devuelve true
+     * -'user1' existe → devuelve true
+     * -Usuario inexistente → devuelve false
+     */
 
     @Nested
     @DisplayName("existsByUsername")
@@ -127,10 +132,11 @@ class UserRepoIntegrationTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  Unicidad de username
-    // ════════════════════════════════════════════════════════════════════════
-
+    /**
+     * Pruebas unitarias:
+     * Username duplicado → lanza excepción de constraint
+     * Username único → se guarda correctamente
+     */
     @Nested
     @DisplayName("Unicidad de username")
     class UnicidadTests {

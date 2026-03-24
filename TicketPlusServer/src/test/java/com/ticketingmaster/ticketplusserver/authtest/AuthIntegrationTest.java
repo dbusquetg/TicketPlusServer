@@ -26,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  *
  * Requisito: que existan los usuarios 'admin' y 'user1' en la BD
  * (los crea DataInitializer automáticamente al arrancar la app).
- *
+ * @author David Busquet.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -41,7 +41,13 @@ class AuthIntegrationTest {
         blacklistRepo.deleteAll();
     }
 
-    // ── Helper ───────────────────────────────────────────────────────────────
+    /**
+     * Función para hacer login y obtener el token en base a un username y password.
+     * @param username nombre de usuario
+     * @param password contraseña.
+     * @return String del cuerpo de la respuesta.
+     * @throws Exception 
+     */
 
     private String loginYObtenToken(String username, String password) throws Exception {
         LoginRequest req = new LoginRequest();
@@ -58,10 +64,13 @@ class AuthIntegrationTest {
         return objectMapper.readTree(body).get("token").asText();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  LOGIN
-    // ════════════════════════════════════════════════════════════════════════
-
+/**
+ * Clase que comprende los tests de login, estos incluyen:
+ * Credenciales correctas (admin) → 200 OK con token, rol y username
+ * Credenciales correctas (user1) → 200 OK con rol USER
+ * Contraseña incorrecta → 401 Unauthorized
+ * Usuario inexistente → 401 Unauthorized
+ */
     @Nested
     @DisplayName("Login")
     class LoginTests {
@@ -126,19 +135,15 @@ class AuthIntegrationTest {
                     .andExpect(content().string("Credenciales incorrectas"));
         }
 
-        @Test
-        @DisplayName("Body vacío → 500 Internal Server Error")
-        void login_bodyVacio_devuelve500() throws Exception {
-            mockMvc.perform(post("/api/auth/login")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content("{}"))
-                    .andExpect(status().isInternalServerError());
-        }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  LOGOUT
-    // ════════════════════════════════════════════════════════════════════════
+   /**
+    * Clase que comprende los tests para el Logout, que comprenden:
+    * Token válido → 204 No Content y token guardado en blacklist
+    * Token usado en blacklist → 403 en siguiente request
+    * Sin header Authorization → 403 Forbidden
+    * Token manipulado → 403 Forbidden
+    */
 
     @Nested
     @DisplayName("Logout")

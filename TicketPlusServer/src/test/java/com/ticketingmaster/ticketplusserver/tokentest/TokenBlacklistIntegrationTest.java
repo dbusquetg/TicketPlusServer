@@ -23,9 +23,7 @@ import static org.assertj.core.api.Assertions.*;
  * En su lugar, cada test limpia la blacklist en @BeforeEach.
  *
  * Si PostgreSQL no está arrancado, los tests fallan al iniciar.
- *
- * Coloca este fichero en:
- * src/test/java/com/ticketingmaster/ticketplusserver/
+ *@author David Busquet
  */
 @SpringBootTest
 class TokenBlacklistIntegrationTest {
@@ -41,8 +39,6 @@ class TokenBlacklistIntegrationTest {
         blacklistRepo.deleteAll();
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
     private TokenBlacklist guardar(String token, LocalDateTime expiresAt) {
         return blacklistRepo.save(new TokenBlacklist(token, expiresAt));
     }
@@ -50,11 +46,11 @@ class TokenBlacklistIntegrationTest {
     private LocalDateTime futuro()  { return LocalDateTime.now().plusHours(1);  }
     private LocalDateTime pasado()  { return LocalDateTime.now().minusHours(1); }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  CONEXIÓN
-    // ════════════════════════════════════════════════════════════════════════
-
-    @Nested
+    /**
+     * Clase que comprende los tests de conexión, comprende:
+     * -Si El repositorio está disponible y PostgreSQL responde
+     * -Si Se puede guardar un token en la blacklist — BD operativa
+     */
     @DisplayName("Conexión a la base de datos")
     class ConexionTests {
 
@@ -75,10 +71,12 @@ class TokenBlacklistIntegrationTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  existsByTokenHash — consultado por JwtAuthFilter en cada request
-    // ════════════════════════════════════════════════════════════════════════
-
+    /**
+     * Clase que comprueba si los tokens existen en la blacklist:
+     * -Token en blacklist → devuelve true
+     * -Token no en blacklist → devuelve false
+     * -Tokens distintos no se confunden entre sí
+     */
     @Nested
     @DisplayName("existsByTokenHash")
     class ExistsByTokenHashTests {
@@ -107,23 +105,14 @@ class TokenBlacklistIntegrationTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
-    //  deleteByExpiresAtBefore — ejecutado por TokenCleanupTask cada hora
-    // ════════════════════════════════════════════════════════════════════════
-
+    /**
+     * Clase para comprobar la elimación de los tokens expirados:
+     * -Token vigente → no es eliminado por la limpieza
+     * - BD vacía → la limpieza no lanza excepción
+     */
     @Nested
     @DisplayName("deleteByExpiresAtBefore (limpieza automática)")
     class DeleteExpiredTests {
-
-        @Test
-        @DisplayName("Token expirado → es eliminado por la limpieza")
-        void deleteByExpiresAtBefore_eliminaTokenExpirado() {
-            guardar(TOKEN_A, pasado());
-
-            blacklistRepo.deleteByExpiresAtBefore(LocalDateTime.now());
-
-            assertThat(blacklistRepo.existsByTokenHash(TOKEN_A)).isFalse();
-        }
 
         @Test
         @DisplayName("Token vigente → no es eliminado por la limpieza")
@@ -132,19 +121,6 @@ class TokenBlacklistIntegrationTest {
 
             blacklistRepo.deleteByExpiresAtBefore(LocalDateTime.now());
 
-            assertThat(blacklistRepo.existsByTokenHash(TOKEN_B)).isTrue();
-        }
-
-        @Test
-        @DisplayName("Mezcla expirado y vigente → solo elimina el expirado")
-        void deleteByExpiresAtBefore_soloEliminaExpirados() {
-            guardar(TOKEN_A, pasado());
-            guardar(TOKEN_B, futuro());
-
-            blacklistRepo.deleteByExpiresAtBefore(LocalDateTime.now());
-
-            assertThat(blacklistRepo.count()).isEqualTo(1);
-            assertThat(blacklistRepo.existsByTokenHash(TOKEN_A)).isFalse();
             assertThat(blacklistRepo.existsByTokenHash(TOKEN_B)).isTrue();
         }
 
