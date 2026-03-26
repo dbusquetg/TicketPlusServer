@@ -1,20 +1,17 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ticketingmaster.ticketplusserver.config;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
-
 import java.util.List;
 
 /**
  * Configuración CORS para permitir peticiones desde el cliente Swing
  * (y cualquier otro origen durante desarrollo).
  * En producción, reemplaza allowedOriginPatterns("*") con dominios concretos.
+ * @author David Busquet
  */
 @Configuration
 public class CorsConfig {
@@ -22,7 +19,7 @@ public class CorsConfig {
      * Constructor corsfilter que configura y devuelve un objeto CorsFilter para
      * las funciones permitidas y las cabeceras permitidas, asi como credenciales
      * y patrones.
-     * @return 
+     * @return un objeto CorsFilter.
      */
     @Bean
     public CorsFilter corsFilter() {

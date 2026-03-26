@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 /**
  *Clase que controla el servicio de inicialización de datos, si existen
  * en la BD o no.
+ * @author David Busquet
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
@@ -19,8 +20,8 @@ public class DataInitializer implements CommandLineRunner {
     
     /**
      *  Constructor que recibe Repositorio de Usuario y un Password Encoder.
-     * @param userRepository
-     * @param passwordEncoder 
+     * @param userRepository Repositorio del usuario
+     * @param passwordEncoder Codificador de contraseñas
      */
     public DataInitializer(UserRepo userRepository,
                            PasswordEncoder passwordEncoder) {
@@ -30,7 +31,7 @@ public class DataInitializer implements CommandLineRunner {
     
     /**
      * Run que inicializa el Data Initializer, se pasan argumentos en forma de String.
-     * @param args 
+     * @param args  Argumentos en formato String.
      */
     @Override
     public void run(String... args) {

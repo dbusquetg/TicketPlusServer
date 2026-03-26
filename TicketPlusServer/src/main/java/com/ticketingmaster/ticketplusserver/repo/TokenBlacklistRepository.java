@@ -9,6 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 /**
  * Interface que conforma el repositorio de tokens en la lista negra.
+ * @author David Busquet
  */
 public interface TokenBlacklistRepository extends JpaRepository<TokenBlacklist, String> {
 

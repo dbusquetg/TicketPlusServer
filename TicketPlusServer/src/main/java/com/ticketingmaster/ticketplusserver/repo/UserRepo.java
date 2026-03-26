@@ -7,6 +7,7 @@ import java.util.Optional;
  * Interfaz de la clase Usuario para el repositorio. Implementa la función
  * findByUsername para poder buscar usuarios según su clave primaria, y una 
  * función para comprobar si el usuario existe.
+ * @author David Busquet
  */
 public interface UserRepo extends JpaRepository<User, Long> {
 
