@@ -1,1 +1,35 @@
-Texto baliza para la rama main del proyecto TicketPlusServer
+Aplicació Java realitzada amb Rest Api i Spring Boot a fin que funcioni juntament amb una 
+base de datos PostgresSQL. Valida el LOGIN dels usuaris de manera senzilla i aplica una 
+capa de seguretat mitjançant JWT i Bcrypt. Es l’embrió d’una APP backend de ticketing 
+que gestionarà les crides a la base de dades i es comunica mitjançant protocol HTTPS i 
+JSON entre la mateixa app i la seva contrapart de client.
+
+Observacions i coses a remarcar:-La app gestiona les crides del client per poder fer LOGIN a la base de dades.-També gestiona el logout mitjançant tokens i una taula dedicada a la llista negra dels 
+mateixos.-Incorpora una capa de seguretat a fi de no guardar les contrasenyes en text pla, sino en format Hash.
+
+Patrons utilitzats:
+Patro: Fitxers en els que es fa servir:
+Dependency Injection AuthController, ServAuth, JwtAuthFilter, 
+SecurityConfig, UserDetailsServiceImpl, 
+TokenCleanupTask ,DataInitializer
+Filter Chain JwtAuthFilter, OncePerRequestFilter, 
+SecurityConfig
+Repository UserRepo ,TokenBlacklistRepositor
+Data Transfer Object LoginRequest y LoginResponse
+Template Method JwtAuthFilter
+Singleton Tots els que contenen “@Component, 
+@Service y @Configuration “
+Token Blacklist* ServAuth  TokenBlacklistRepository  
+JwtAuthFilter.
+Stateles Autenthication* SecurityConfig
+*Patro de seguretat
+
+Sistema de xifratge:
+Xifratge de contraseñes mitjançant Bcrypt: aquest no xifra les contrasenyes amb una 
+clau i de manera reversible, sinó que genera un hash, de manera que la contrseña 
+original no es pot recuperar mai a partir del Hash.
+Xifratge de transit en el token JWT: El token en si no està xifrat, la seva payload es 
+Base64 llegible en text pla, però si està firmat amb  HMAC-SHA256 mitjançant clau 
+secreta. Això garantitza la seva integritat, ningú pot modificar el token sense invalidar la 
+firma.
+Xifratge de comunicacions: No implementat encara
