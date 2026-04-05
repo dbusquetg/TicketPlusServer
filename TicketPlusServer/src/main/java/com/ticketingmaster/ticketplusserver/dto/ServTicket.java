@@ -15,35 +15,37 @@ import java.util.stream.Collectors;
 
 /**
  * Servicio de gestión de tickets.
- * Extrae el usuario autenticado del SecurityContext para
- * evitar que el cliente manipule el campo createdBy.
+ * El usuario autenticado se extrae siempre del JWT via SecurityContext,
+ * nunca del body de la petición.
  */
 @Service
 public class ServTicket {
-
+ 
     private final TicketRepo ticketRepo;
     private final UserRepo   userRepo;
-
+ 
     public ServTicket(TicketRepo ticketRepo, UserRepo userRepo) {
         this.ticketRepo = ticketRepo;
         this.userRepo   = userRepo;
     }
-
+ 
     // ─── Crear ────────────────────────────────────────────────────────────
-
+ 
     /**
-     * Crea un nuevo ticket. El creador se resuelve a partir del username
-     * extraído del JWT, no del body de la petición.
+     * Crea un nuevo ticket a partir del JSON recibido del cliente.
+     * El campo priority llega como enum (LOW, MEDIUM, HIGH, CRITICAL).
+     * El creador se resuelve a partir del username extraído del JWT.
      *
-     * @param request  datos del ticket enviados por el cliente.
-     * @param username username del usuario autenticado (extraído del JWT).
-     * @return TicketResponse con los datos del ticket creado.
+     * @param request  datos del ticket: title, description, priority,
+     *                 typology (opcional), subTypology (opcional).
+     * @param username username del usuario autenticado extraído del JWT.
+     * @return TicketResponse con todos los datos del ticket creado.
      */
     @Transactional
     public TicketResponse crear(TicketRequest request, String username) {
         User creator = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
-
+ 
         Ticket ticket = new Ticket(
                 request.getTitle(),
                 request.getDescription(),
@@ -52,12 +54,12 @@ public class ServTicket {
                 request.getSubTypology(),
                 creator
         );
-
+ 
         return TicketResponse.from(ticketRepo.save(ticket));
     }
-
+ 
     // ─── Consultas ────────────────────────────────────────────────────────
-
+ 
     /**
      * Devuelve todos los tickets del sistema (uso exclusivo de ADMIN).
      */
@@ -67,7 +69,7 @@ public class ServTicket {
                 .map(TicketResponse::from)
                 .collect(Collectors.toList());
     }
-
+ 
     /**
      * Devuelve los tickets creados por el usuario autenticado.
      */
@@ -79,7 +81,7 @@ public class ServTicket {
                 .map(TicketResponse::from)
                 .collect(Collectors.toList());
     }
-
+ 
     /**
      * Devuelve los tickets asignados al agente autenticado.
      */
@@ -91,7 +93,7 @@ public class ServTicket {
                 .map(TicketResponse::from)
                 .collect(Collectors.toList());
     }
-
+ 
     /**
      * Devuelve un ticket por su ID.
      */
@@ -101,45 +103,34 @@ public class ServTicket {
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + id));
         return TicketResponse.from(ticket);
     }
-
+ 
     // ─── Asignar agente ───────────────────────────────────────────────────
-
+ 
     /**
      * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
-     * Solo puede ejecutarlo un ADMIN.
-     *
-     * @param ticketId      ID del ticket a asignar.
-     * @param agentUsername username del agente a asignar.
-     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse asignarAgente(Long ticketId, String agentUsername) {
         Ticket ticket = ticketRepo.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
-
         User agent = userRepo.findByUsername(agentUsername)
                 .orElseThrow(() -> new RuntimeException("Agente no encontrado: " + agentUsername));
-
+ 
         ticket.setAgent(agent);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
-
         return TicketResponse.from(ticketRepo.save(ticket));
     }
-
+ 
     // ─── Cambiar estado ───────────────────────────────────────────────────
-
+ 
     /**
      * Cambia el estado de un ticket.
-     *
-     * @param ticketId ID del ticket.
-     * @param status   nuevo estado.
-     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse cambiarEstado(Long ticketId, TicketStatus status) {
         Ticket ticket = ticketRepo.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
-
+ 
         ticket.setStatus(status);
         return TicketResponse.from(ticketRepo.save(ticket));
     }

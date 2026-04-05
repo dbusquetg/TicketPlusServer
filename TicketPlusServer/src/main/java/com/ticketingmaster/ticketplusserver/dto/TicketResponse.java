@@ -2,6 +2,7 @@ package com.ticketingmaster.ticketplusserver.dto;
 
 import com.ticketingmaster.ticketplusserver.model.Ticket;
 import com.ticketingmaster.ticketplusserver.model.TicketStatus;
+import com.ticketingmaster.ticketplusserver.model.Priority;
 
 import java.time.LocalDateTime;
 
@@ -16,7 +17,7 @@ public class TicketResponse {
     private LocalDateTime creationDate;
     private String        title;
     private String        description;
-    private Integer       priority;
+    private Priority       priority;
     private String        typology;
     private String        subTypology;
     private TicketStatus  status;
@@ -44,7 +45,18 @@ public class TicketResponse {
                            : null;
         return dto;
     }
-
+    
+     /**
+     * Traduce el enum interno TicketStatus a un string legible para el cliente.
+     */
+    private static String mapStatus(TicketStatus status) {
+        return switch (status) {
+            case UNASSIGNED  -> "Opened";
+            case IN_PROGRESS -> "In Progress";
+            case RESOLVED    -> "Resolved";
+        };
+    }
+    
     // ─── Getters & Setters ────────────────────────────────────────────────
 
     public Long getIdTicket()                           { return idTicket; }
@@ -59,8 +71,8 @@ public class TicketResponse {
     public String getDescription()                      { return description; }
     public void setDescription(String description)      { this.description = description; }
 
-    public Integer getPriority()                        { return priority; }
-    public void setPriority(Integer priority)           { this.priority = priority; }
+    public Priority getPriority()                        { return priority; }
+    public void setPriority(Priority priority)           { this.priority = priority; }
 
     public String getTypology()                         { return typology; }
     public void setTypology(String typology)            { this.typology = typology; }

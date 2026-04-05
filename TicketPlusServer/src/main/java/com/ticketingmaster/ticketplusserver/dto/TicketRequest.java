@@ -1,5 +1,7 @@
 package com.ticketingmaster.ticketplusserver.dto;
 
+import com.ticketingmaster.ticketplusserver.model.Priority;
+
 /**
  * DTO para la creación de un nuevo ticket.
  * El campo createdBy se extrae del JWT en el servicio,
@@ -9,7 +11,7 @@ public class TicketRequest {
 
     private String  title;
     private String  description;
-    private Integer priority;
+    private Priority priority;
     private String  typology;
     private String  subTypology;
 
@@ -21,8 +23,8 @@ public class TicketRequest {
     public String getDescription()                  { return description; }
     public void setDescription(String desc)         { this.description = desc; }
 
-    public Integer getPriority()                    { return priority; }
-    public void setPriority(Integer priority)       { this.priority = priority; }
+    public Priority getPriority()                    { return priority; }
+    public void setPriority(Priority priority)       { this.priority = priority; }
 
     public String getTypology()                     { return typology; }
     public void setTypology(String typology)        { this.typology = typology; }

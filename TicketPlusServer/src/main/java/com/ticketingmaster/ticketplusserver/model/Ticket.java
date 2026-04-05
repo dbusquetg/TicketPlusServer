@@ -26,12 +26,13 @@ public class Ticket {
 
     @Column(name = "title", nullable = false, length = 150)
     private String title;
-
+    
     @Column(name = "description", nullable = false, columnDefinition = "TEXT")
     private String description;
-
-    @Column(name = "priority", nullable = false)
-    private Integer priority;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "priority", nullable = false, length =10)
+    private Priority priority;
 
     @Column(name = "typology", length = 100)
     private String typology;
@@ -62,11 +63,9 @@ public class Ticket {
     @JoinColumn(name = "agent")
     private User agent;
 
-    // ─── Constructors ─────────────────────────────────────────────────────
-
     public Ticket() {}
 
-    public Ticket(String title, String description, Integer priority,
+    public Ticket(String title, String description, Priority priority,
                   String typology, String subTypology, User createdBy) {
         this.title        = title;
         this.description  = description;
@@ -78,7 +77,6 @@ public class Ticket {
         this.status       = TicketStatus.UNASSIGNED;
     }
 
-    // ─── Getters & Setters ────────────────────────────────────────────────
 
     public Long getIdTicket()                        { return idTicket; }
     public void setIdTicket(Long idTicket)           { this.idTicket = idTicket; }
@@ -92,8 +90,8 @@ public class Ticket {
     public String getDescription()                   { return description; }
     public void setDescription(String description)   { this.description = description; }
 
-    public Integer getPriority()                     { return priority; }
-    public void setPriority(Integer priority)        { this.priority = priority; }
+    public Priority getPriority()                     { return priority; }
+    public void setPriority(Priority priority)        { this.priority = priority; }
 
     public String getTypology()                      { return typology; }
     public void setTypology(String typology)         { this.typology = typology; }
