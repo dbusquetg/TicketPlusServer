@@ -34,11 +34,6 @@ public class ServTicket {
     /**
      * Crea un nuevo ticket a partir del JSON recibido del cliente.
      * El creador se resuelve a partir del username extraído del JWT.
-     *
-     * @param request  datos del ticket: title, description, priority,
-     *                 typology (opcional), subTypology (opcional).
-     * @param username username del usuario autenticado extraído del JWT.
-     * @return TicketResponse con todos los datos del ticket creado.
      */
     @Transactional
     public TicketResponse crear(TicketRequest request, String username) {
@@ -62,8 +57,6 @@ public class ServTicket {
     /**
      * Devuelve todos los tickets del sistema.
      * Llamado cuando el usuario autenticado tiene rol ADMIN.
-     *
-     * @return lista completa de tickets.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerTodos() {
@@ -75,9 +68,6 @@ public class ServTicket {
     /**
      * Devuelve solo los tickets creados por el usuario autenticado.
      * Llamado cuando el usuario autenticado tiene rol USER.
-     *
-     * @param username username del cliente autenticado.
-     * @return lista de tickets del cliente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorCliente(String username) {
@@ -90,9 +80,6 @@ public class ServTicket {
  
     /**
      * Devuelve los tickets asignados a un agente concreto.
-     *
-     * @param username username del agente.
-     * @return lista de tickets asignados al agente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorAgente(String username) {
@@ -103,16 +90,32 @@ public class ServTicket {
                 .collect(Collectors.toList());
     }
  
+    // ─── Detalle ──────────────────────────────────────────────────────────
+ 
     /**
-     * Devuelve un ticket por su ID.
+     * Devuelve el detalle de un ticket por su ID.
      *
-     * @param id ID del ticket.
+     * Si el usuario es ADMIN puede ver cualquier ticket.
+     * Si el usuario es USER solo puede ver sus propios tickets —
+     * si intenta ver uno ajeno se lanza TicketNotFoundException
+     * para que el controlador devuelva 404 (no 403, para no revelar
+     * que el ticket existe).
+     *
+     * @param id       ID del ticket.
+     * @param username username del usuario autenticado extraído del JWT.
+     * @param esAdmin  true si el usuario tiene rol ADMIN.
      * @return TicketResponse con los datos del ticket.
+     * @throws RuntimeException si el ticket no existe o el USER no es el propietario.
      */
     @Transactional(readOnly = true)
-    public TicketResponse obtenerPorId(Long id) {
+    public TicketResponse obtenerPorId(Long id, String username, boolean esAdmin) {
         Ticket ticket = ticketRepo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + id));
+ 
+        if (!esAdmin && !ticket.getCreatedBy().getUsername().equals(username)) {
+            throw new RuntimeException("Ticket no encontrado: " + id);
+        }
+ 
         return TicketResponse.from(ticket);
     }
  
@@ -121,10 +124,6 @@ public class ServTicket {
     /**
      * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
      * Solo puede ejecutarlo un ADMIN.
-     *
-     * @param ticketId      ID del ticket a asignar.
-     * @param agentUsername username del agente a asignar.
-     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse asignarAgente(Long ticketId, String agentUsername) {
@@ -143,10 +142,6 @@ public class ServTicket {
     /**
      * Cambia el estado de un ticket.
      * Solo puede ejecutarlo un ADMIN.
-     *
-     * @param ticketId ID del ticket.
-     * @param status   nuevo estado (UNASSIGNED, IN_PROGRESS, RESOLVED).
-     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse cambiarEstado(Long ticketId, TicketStatus status) {

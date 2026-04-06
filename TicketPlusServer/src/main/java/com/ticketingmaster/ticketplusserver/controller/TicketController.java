@@ -17,7 +17,7 @@ import java.util.List;
  * Endpoints:
  *   POST /api/tickets              → Crear ticket         (USER, ADMIN)
  *   GET  /api/tickets              → Listar tickets       (USER ve los suyos, ADMIN ve todos)
- *   GET  /api/tickets/{id}         → Detalle de ticket    (USER, ADMIN)
+ *   GET  /api/tickets/{id}         → Detalle de ticket    (USER solo los suyos, ADMIN cualquiera)
  *   PUT  /api/tickets/{id}/assign  → Asignar agente       (solo ADMIN)
  *   PUT  /api/tickets/{id}/status  → Cambiar estado       (solo ADMIN)
  */
@@ -31,6 +31,15 @@ public class TicketController {
         this.servTicket = servTicket;
     }
  
+    // ─── Helper ───────────────────────────────────────────────────────────
+ 
+    private boolean esAdmin(Authentication auth) {
+        return auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+    }
+ 
+    // ─── Endpoints ────────────────────────────────────────────────────────
+ 
     /**
      * Crea un nuevo ticket.
      * El creador se obtiene del JWT, no del body.
@@ -39,8 +48,7 @@ public class TicketController {
     public ResponseEntity<TicketResponse> crear(@RequestBody TicketRequest request,
                                                 Authentication auth) {
         try {
-            TicketResponse response = servTicket.crear(request, auth.getName());
-            return ResponseEntity.status(201).body(response);
+            return ResponseEntity.status(201).body(servTicket.crear(request, auth.getName()));
         } catch (Exception e) {
             return ResponseEntity.status(500).build();
         }
@@ -48,17 +56,12 @@ public class TicketController {
  
     /**
      * Lista tickets según el rol del usuario autenticado.
-     * ADMIN → recibe todos los tickets del sistema.
-     * USER  → recibe solo los tickets que él ha creado.
-     *
-     * El filtrado se hace en el servicio a partir del rol extraído del JWT.
+     * ADMIN → todos los tickets del sistema.
+     * USER  → solo los tickets que él ha creado.
      */
     @GetMapping
     public ResponseEntity<List<TicketResponse>> listar(Authentication auth) {
-        boolean esAdmin = auth.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
- 
-        List<TicketResponse> tickets = esAdmin
+        List<TicketResponse> tickets = esAdmin(auth)
                 ? servTicket.obtenerTodos()
                 : servTicket.obtenerPorCliente(auth.getName());
  
@@ -67,11 +70,19 @@ public class TicketController {
  
     /**
      * Devuelve el detalle de un ticket por su ID.
+     *
+     * ADMIN → puede ver cualquier ticket.
+     * USER  → solo puede ver sus propios tickets.
+     *         Si intenta ver uno ajeno devuelve 404
+     *         (no 403, para no revelar que el ticket existe).
      */
     @GetMapping("/{id}")
-    public ResponseEntity<TicketResponse> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<TicketResponse> obtenerPorId(@PathVariable Long id,
+                                                       Authentication auth) {
         try {
-            return ResponseEntity.ok(servTicket.obtenerPorId(id));
+            return ResponseEntity.ok(
+                    servTicket.obtenerPorId(id, auth.getName(), esAdmin(auth))
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
