@@ -38,7 +38,6 @@ public class ServDetailTicket {
         this.userRepo   = userRepo;
     }
 
-    // ─── Añadir entrada al hilo ───────────────────────────────────────────
 
     /**
      * Añade una nueva entrada al hilo de conversación de un ticket.

@@ -15,31 +15,29 @@ import java.util.List;
  * Controlador REST para la gestión de tickets.
  *
  * Endpoints:
- *   POST   /api/tickets              → Crear ticket        (USER, ADMIN)
- *   GET    /api/tickets              → Listar todos        (solo ADMIN)
- *   GET    /api/tickets/mine         → Mis tickets         (USER autenticado)
- *   GET    /api/tickets/assigned     → Tickets asignados   (ADMIN/agente)
- *   GET    /api/tickets/{id}         → Detalle de ticket   (USER, ADMIN)
- *   PUT    /api/tickets/{id}/assign  → Asignar agente      (solo ADMIN)
- *   PUT    /api/tickets/{id}/status  → Cambiar estado      (solo ADMIN)
+ *   POST /api/tickets              → Crear ticket         (USER, ADMIN)
+ *   GET  /api/tickets              → Listar tickets       (USER ve los suyos, ADMIN ve todos)
+ *   GET  /api/tickets/{id}         → Detalle de ticket    (USER, ADMIN)
+ *   PUT  /api/tickets/{id}/assign  → Asignar agente       (solo ADMIN)
+ *   PUT  /api/tickets/{id}/status  → Cambiar estado       (solo ADMIN)
  */
 @RestController
 @RequestMapping("/api/tickets")
 public class TicketController {
-
+ 
     private final ServTicket servTicket;
-
+ 
     public TicketController(ServTicket servTicket) {
         this.servTicket = servTicket;
     }
-
+ 
     /**
-     * Crea un nuevo ticket. El creador se obtiene del JWT,
-     * no del body de la petición.
+     * Crea un nuevo ticket.
+     * El creador se obtiene del JWT, no del body.
      */
     @PostMapping
     public ResponseEntity<TicketResponse> crear(@RequestBody TicketRequest request,
-                                                 Authentication auth) {
+                                                Authentication auth) {
         try {
             TicketResponse response = servTicket.crear(request, auth.getName());
             return ResponseEntity.status(201).body(response);
@@ -47,35 +45,26 @@ public class TicketController {
             return ResponseEntity.status(500).build();
         }
     }
-
+ 
     /**
-     * Lista todos los tickets del sistema.
-     * Acceso exclusivo para administradores.
+     * Lista tickets según el rol del usuario autenticado.
+     * ADMIN → recibe todos los tickets del sistema.
+     * USER  → recibe solo los tickets que él ha creado.
+     *
+     * El filtrado se hace en el servicio a partir del rol extraído del JWT.
      */
     @GetMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TicketResponse>> obtenerTodos() {
-        return ResponseEntity.ok(servTicket.obtenerTodos());
+    public ResponseEntity<List<TicketResponse>> listar(Authentication auth) {
+        boolean esAdmin = auth.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+ 
+        List<TicketResponse> tickets = esAdmin
+                ? servTicket.obtenerTodos()
+                : servTicket.obtenerPorCliente(auth.getName());
+ 
+        return ResponseEntity.ok(tickets);
     }
-
-    /**
-     * Devuelve los tickets creados por el usuario autenticado.
-     */
-    @GetMapping("/mine")
-    public ResponseEntity<List<TicketResponse>> misTikets(Authentication auth) {
-        return ResponseEntity.ok(servTicket.obtenerPorCliente(auth.getName()));
-    }
-
-    /**
-     * Devuelve los tickets asignados al agente autenticado.
-     * Acceso exclusivo para administradores/agentes.
-     */
-    @GetMapping("/assigned")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<List<TicketResponse>> ticketsAsignados(Authentication auth) {
-        return ResponseEntity.ok(servTicket.obtenerPorAgente(auth.getName()));
-    }
-
+ 
     /**
      * Devuelve el detalle de un ticket por su ID.
      */
@@ -87,36 +76,30 @@ public class TicketController {
             return ResponseEntity.notFound().build();
         }
     }
-
+ 
     /**
      * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
-     * Acceso exclusivo para administradores.
-     *
-     * @param id            ID del ticket.
-     * @param agentUsername username del agente a asignar (query param).
+     * Acceso exclusivo para ADMIN.
      */
     @PutMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketResponse> asignarAgente(@PathVariable Long id,
-                                                         @RequestParam String agentUsername) {
+                                                        @RequestParam String agentUsername) {
         try {
             return ResponseEntity.ok(servTicket.asignarAgente(id, agentUsername));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
-
+ 
     /**
      * Cambia el estado de un ticket.
-     * Acceso exclusivo para administradores.
-     *
-     * @param id     ID del ticket.
-     * @param status nuevo estado (UNASSIGNED, IN_PROGRESS, RESOLVED).
+     * Acceso exclusivo para ADMIN.
      */
     @PutMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketResponse> cambiarEstado(@PathVariable Long id,
-                                                         @RequestParam TicketStatus status) {
+                                                        @RequestParam TicketStatus status) {
         try {
             return ResponseEntity.ok(servTicket.cambiarEstado(id, status));
         } catch (RuntimeException e) {

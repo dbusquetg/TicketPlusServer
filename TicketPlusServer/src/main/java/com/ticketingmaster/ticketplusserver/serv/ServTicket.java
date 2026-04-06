@@ -33,7 +33,6 @@ public class ServTicket {
  
     /**
      * Crea un nuevo ticket a partir del JSON recibido del cliente.
-     * El campo priority llega como enum (LOW, MEDIUM, HIGH, CRITICAL).
      * El creador se resuelve a partir del username extraído del JWT.
      *
      * @param request  datos del ticket: title, description, priority,
@@ -58,10 +57,13 @@ public class ServTicket {
         return TicketResponse.from(ticketRepo.save(ticket));
     }
  
-    // ─── Consultas ────────────────────────────────────────────────────────
+    // ─── Listar ───────────────────────────────────────────────────────────
  
     /**
-     * Devuelve todos los tickets del sistema (uso exclusivo de ADMIN).
+     * Devuelve todos los tickets del sistema.
+     * Llamado cuando el usuario autenticado tiene rol ADMIN.
+     *
+     * @return lista completa de tickets.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerTodos() {
@@ -71,7 +73,11 @@ public class ServTicket {
     }
  
     /**
-     * Devuelve los tickets creados por el usuario autenticado.
+     * Devuelve solo los tickets creados por el usuario autenticado.
+     * Llamado cuando el usuario autenticado tiene rol USER.
+     *
+     * @param username username del cliente autenticado.
+     * @return lista de tickets del cliente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorCliente(String username) {
@@ -83,7 +89,10 @@ public class ServTicket {
     }
  
     /**
-     * Devuelve los tickets asignados al agente autenticado.
+     * Devuelve los tickets asignados a un agente concreto.
+     *
+     * @param username username del agente.
+     * @return lista de tickets asignados al agente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorAgente(String username) {
@@ -96,6 +105,9 @@ public class ServTicket {
  
     /**
      * Devuelve un ticket por su ID.
+     *
+     * @param id ID del ticket.
+     * @return TicketResponse con los datos del ticket.
      */
     @Transactional(readOnly = true)
     public TicketResponse obtenerPorId(Long id) {
@@ -108,6 +120,11 @@ public class ServTicket {
  
     /**
      * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
+     * Solo puede ejecutarlo un ADMIN.
+     *
+     * @param ticketId      ID del ticket a asignar.
+     * @param agentUsername username del agente a asignar.
+     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse asignarAgente(Long ticketId, String agentUsername) {
@@ -125,6 +142,11 @@ public class ServTicket {
  
     /**
      * Cambia el estado de un ticket.
+     * Solo puede ejecutarlo un ADMIN.
+     *
+     * @param ticketId ID del ticket.
+     * @param status   nuevo estado (UNASSIGNED, IN_PROGRESS, RESOLVED).
+     * @return TicketResponse actualizado.
      */
     @Transactional
     public TicketResponse cambiarEstado(Long ticketId, TicketStatus status) {
