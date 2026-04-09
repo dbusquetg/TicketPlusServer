@@ -88,15 +88,16 @@ public class TicketController {
     }
  
     /**
-     * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
-     * Acceso exclusivo para ADMIN.
+     * El ADMIN autenticado se asigna a sí mismo el ticket.
+     * No recibe body — el agente se toma directamente del JWT.
+     * El status cambia automáticamente a "In Progress".
      */
-    @PutMapping("/{id}/assign")
+    @PatchMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketResponse> asignarAgente(@PathVariable Long id,
-                                                        @RequestParam String agentUsername) {
+                                                    Authentication auth) {
         try {
-            return ResponseEntity.ok(servTicket.asignarAgente(id, agentUsername));
+            return ResponseEntity.ok(servTicket.asignarAgente(id, auth.getName()));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

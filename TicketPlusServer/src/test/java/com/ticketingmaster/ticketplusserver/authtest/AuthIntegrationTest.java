@@ -1,7 +1,7 @@
 package com.ticketingmaster.ticketplusserver.authtest;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
+import com.ticketingmaster.ticketplusserver.ticketingmaster.ticketplusserver.dto.LoginRequest;
 import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

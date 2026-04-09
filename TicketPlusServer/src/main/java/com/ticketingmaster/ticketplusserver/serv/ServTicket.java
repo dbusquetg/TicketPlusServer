@@ -112,16 +112,22 @@ public class ServTicket {
  
     // ─── Asignar agente ───────────────────────────────────────────────────
  
-    /**
-     * Asigna un agente a un ticket y lo pone en estado IN_PROGRESS.
-     * Solo puede ejecutarlo un ADMIN.
+     /**
+     * El ADMIN autenticado se asigna a sí mismo el ticket.
+     * El agente se toma del JWT — no se recibe en el body.
+     * El estado cambia automáticamente a IN_PROGRESS.
+     *
+     * @param ticketId ID del ticket a asignar.
+     * @param username username del ADMIN autenticado extraído del JWT.
+     * @return TicketResponse actualizado con agent y status IN_PROGRESS.
      */
     @Transactional
-    public TicketResponse asignarAgente(Long ticketId, String agentUsername) {
+    public TicketResponse asignarAgente(Long ticketId, String username) {
         Ticket ticket = ticketRepo.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
-        User agent = userRepo.findByUsername(agentUsername)
-                .orElseThrow(() -> new RuntimeException("Agente no encontrado: " + agentUsername));
+ 
+        User agent = userRepo.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
  
         ticket.setAgent(agent);
         ticket.setStatus(TicketStatus.IN_PROGRESS);
