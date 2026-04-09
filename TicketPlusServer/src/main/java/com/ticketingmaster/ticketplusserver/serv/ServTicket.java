@@ -172,4 +172,51 @@ public class ServTicket {
             );
         };
     }
+ 
+    /**
+     * Cambia la prioridad de un ticket.
+     * ADMIN puede cambiar la prioridad de cualquier ticket.
+     * USER solo puede cambiar la prioridad de sus propios tickets —
+     * si intenta modificar uno ajeno se devuelve 404.
+     *
+     * Valores válidos: "LOW", "MEDIUM", "HIGH", "CRITICAL"
+     *
+     * @param ticketId    ID del ticket.
+     * @param priorityStr prioridad en texto enviada por el cliente.
+     * @param username    username del usuario autenticado extraído del JWT.
+     * @param esAdmin     true si el usuario tiene rol ADMIN.
+     * @return TicketResponse actualizado.
+     * @throws IllegalArgumentException si la prioridad no es válida.
+     * @throws RuntimeException         si el ticket no existe o el USER intenta modificar uno ajeno.
+     */
+    @Transactional
+    public TicketResponse cambiarPrioridad(Long ticketId, String priorityStr,
+                                           String username, boolean esAdmin) {
+        Ticket ticket = ticketRepo.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
+ 
+        if (!esAdmin && !ticket.getCreatedBy().getUsername().equals(username)) {
+            throw new RuntimeException("Ticket no encontrado: " + ticketId);
+        }
+ 
+        ticket.setPriority(parsePriority(priorityStr));
+        return TicketResponse.from(ticketRepo.save(ticket));
+    }
+ 
+    /**
+     * Traduce el texto del cliente al enum interno Priority.
+     */
+    private Priority parsePriority(String priorityStr) {
+        return switch (priorityStr) {
+            case "LOW"      -> Priority.LOW;
+            case "MEDIUM"   -> Priority.MEDIUM;
+            case "HIGH"     -> Priority.HIGH;
+            case "CRITICAL" -> Priority.CRITICAL;
+            default -> throw new IllegalArgumentException(
+                    "Prioridad no válida: '" + priorityStr + "'. " +
+                    "Valores aceptados: LOW, MEDIUM, HIGH, CRITICAL"
+            );
+        };
+    }
+    
 }

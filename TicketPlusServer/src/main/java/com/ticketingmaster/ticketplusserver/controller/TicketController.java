@@ -3,6 +3,7 @@ package com.ticketingmaster.ticketplusserver.controller;
 import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketResponse;
 import com.ticketingmaster.ticketplusserver.dto.ChangeStatusRequest;
+import com.ticketingmaster.ticketplusserver.dto.ChangePriorityRequest;
 import com.ticketingmaster.ticketplusserver.serv.ServTicket;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -117,6 +118,30 @@ public class TicketController {
                                                         @RequestBody ChangeStatusRequest request) {
         try {
             return ResponseEntity.ok(servTicket.cambiarEstado(id, request.getStatus()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * Cambia la prioridad de un ticket.
+     * ADMIN puede cambiar la prioridad de cualquier ticket.
+     * USER solo puede cambiar la prioridad de sus propios tickets
+     * — devuelve 404 si intenta modificar uno ajeno.
+     *
+     * Valores válidos: "LOW", "MEDIUM", "HIGH", "CRITICAL"
+     */
+    @PatchMapping("/{id}/priority")
+    public ResponseEntity<TicketResponse> cambiarPrioridad(@PathVariable Long id,
+                                                           @RequestBody ChangePriorityRequest request,
+                                                           Authentication auth) {
+        try {
+            return ResponseEntity.ok(
+                    servTicket.cambiarPrioridad(id, request.getPriority(),
+                                                auth.getName(), esAdmin(auth))
+            );
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
