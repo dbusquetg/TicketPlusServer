@@ -9,19 +9,6 @@ import java.time.LocalDateTime;
 /**
  * DTO de respuesta para un ticket.
  *
- * Ejemplo de JSON devuelto tras crear un ticket:
- * {
- *   "id": 1,
- *   "ref": "INC-1",
- *   "title": "Mi PC no enciende",
- *   "description": "Desde ayer mi ordenador no quiere arrancar...",
- *   "priority": "HIGH",
- *   "status": "Opened",
- *   "createdBy": "user1",
- *   "agent": null,
- *   "createdAt": "2026-03-30T20:00:00"
- * }
- *
  * Campos generados por el servidor:
  *   ref       → "INC-{id}"
  *   status    → traducido del enum interno a texto legible
@@ -30,6 +17,7 @@ import java.time.LocalDateTime;
  *
  * Mapeo de status:
  *   UNASSIGNED  → "Opened"
+ *   PENDING     → "Pending"
  *   IN_PROGRESS → "In Progress"
  *   RESOLVED    → "Resolved"
  */
@@ -73,35 +61,38 @@ public class TicketResponse {
     private static String mapStatus(TicketStatus status) {
         return switch (status) {
             case UNASSIGNED  -> "Opened";
+            case PENDING     -> "Pending";
             case IN_PROGRESS -> "In Progress";
             case RESOLVED    -> "Resolved";
         };
     }
  
-    public Long getId()                              { return id; }
-    public void setId(Long id)                       { this.id = id; }
+    // ─── Getters & Setters ────────────────────────────────────────────────
  
-    public String getRef()                           { return ref; }
-    public void setRef(String ref)                   { this.ref = ref; }
+    public Long getId()                               { return id; }
+    public void setId(Long id)                        { this.id = id; }
  
-    public String getTitle()                         { return title; }
-    public void setTitle(String title)               { this.title = title; }
+    public String getRef()                            { return ref; }
+    public void setRef(String ref)                    { this.ref = ref; }
  
-    public String getDescription()                   { return description; }
-    public void setDescription(String description)   { this.description = description; }
+    public String getTitle()                          { return title; }
+    public void setTitle(String title)                { this.title = title; }
  
-    public Priority getPriority()                    { return priority; }
-    public void setPriority(Priority priority)       { this.priority = priority; }
+    public String getDescription()                    { return description; }
+    public void setDescription(String description)    { this.description = description; }
  
-    public String getStatus()                        { return status; }
-    public void setStatus(String status)             { this.status = status; }
+    public Priority getPriority()                     { return priority; }
+    public void setPriority(Priority priority)        { this.priority = priority; }
  
-    public String getCreatedBy()                     { return createdBy; }
-    public void setCreatedBy(String createdBy)       { this.createdBy = createdBy; }
+    public String getStatus()                         { return status; }
+    public void setStatus(String status)              { this.status = status; }
  
-    public String getAgent()                         { return agent; }
-    public void setAgent(String agent)               { this.agent = agent; }
+    public String getCreatedBy()                      { return createdBy; }
+    public void setCreatedBy(String createdBy)        { this.createdBy = createdBy; }
  
-    public LocalDateTime getCreatedAt()              { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt){ this.createdAt = createdAt; }
+    public String getAgent()                          { return agent; }
+    public void setAgent(String agent)                { this.agent = agent; }
+ 
+    public LocalDateTime getCreatedAt()               { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 }

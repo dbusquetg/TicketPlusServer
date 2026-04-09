@@ -9,6 +9,7 @@ package com.ticketingmaster.ticketplusserver.model;
  */
 public enum TicketStatus {
     UNASSIGNED,
+    PENDING,
     IN_PROGRESS,
     RESOLVED
 }

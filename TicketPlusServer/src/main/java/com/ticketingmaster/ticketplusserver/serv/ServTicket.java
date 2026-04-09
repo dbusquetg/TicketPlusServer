@@ -32,7 +32,7 @@ public class ServTicket {
     // ─── Crear ────────────────────────────────────────────────────────────
  
     /**
-     * Crea un nuevo ticket a partir del JSON recibido del cliente.
+     * Crea un nuevo ticket. El estado inicial es siempre UNASSIGNED.
      * El creador se resuelve a partir del username extraído del JWT.
      */
     @Transactional
@@ -66,8 +66,12 @@ public class ServTicket {
     }
  
     /**
-     * Devuelve solo los tickets creados por el usuario autenticado.
+     * Devuelve todos los tickets creados por el usuario autenticado,
+     * independientemente del estado (Opened, Pending, In Progress, Resolved).
      * Llamado cuando el usuario autenticado tiene rol USER.
+     *
+     * @param username username del cliente autenticado.
+     * @return lista completa de tickets del cliente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorCliente(String username) {
@@ -95,17 +99,15 @@ public class ServTicket {
     /**
      * Devuelve el detalle de un ticket por su ID.
      *
-     * Si el usuario es ADMIN puede ver cualquier ticket.
-     * Si el usuario es USER solo puede ver sus propios tickets —
-     * si intenta ver uno ajeno se lanza TicketNotFoundException
-     * para que el controlador devuelva 404 (no 403, para no revelar
-     * que el ticket existe).
+     * ADMIN → puede ver cualquier ticket.
+     * USER  → solo puede ver sus propios tickets.
+     *         Si intenta ver uno ajeno se lanza RuntimeException
+     *         para que el controlador devuelva 404 (no 403,
+     *         para no revelar que el ticket existe).
      *
-     * @param id       ID del ticket.
+     * @param id      ID del ticket.
      * @param username username del usuario autenticado extraído del JWT.
-     * @param esAdmin  true si el usuario tiene rol ADMIN.
-     * @return TicketResponse con los datos del ticket.
-     * @throws RuntimeException si el ticket no existe o el USER no es el propietario.
+     * @param esAdmin true si el usuario tiene rol ADMIN.
      */
     @Transactional(readOnly = true)
     public TicketResponse obtenerPorId(Long id, String username, boolean esAdmin) {
