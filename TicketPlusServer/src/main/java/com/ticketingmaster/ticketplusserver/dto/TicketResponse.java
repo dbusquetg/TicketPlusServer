@@ -8,46 +8,67 @@ import java.time.LocalDateTime;
 
 /**
  * DTO de respuesta para un ticket.
- * Expone solo los campos necesarios al cliente,
- * evitando serializar las entidades User completas.
+ *
+ * Ejemplo de JSON devuelto tras crear un ticket:
+ * {
+ *   "id": 1,
+ *   "ref": "INC-1",
+ *   "title": "Mi PC no enciende",
+ *   "description": "Desde ayer mi ordenador no quiere arrancar...",
+ *   "priority": "HIGH",
+ *   "status": "Opened",
+ *   "createdBy": "user1",
+ *   "agent": null,
+ *   "createdAt": "2026-03-30T20:00:00"
+ * }
+ *
+ * Campos generados por el servidor:
+ *   ref       → "INC-{id}"
+ *   status    → traducido del enum interno a texto legible
+ *   createdBy → username extraído del JWT
+ *   createdAt → timestamp de creación
+ *
+ * Mapeo de status:
+ *   UNASSIGNED  → "Opened"
+ *   IN_PROGRESS → "In Progress"
+ *   RESOLVED    → "Resolved"
  */
 public class TicketResponse {
-
-    private Long          idTicket;
-    private LocalDateTime creationDate;
+ 
+    private Long          id;
+    private String        ref;
     private String        title;
     private String        description;
-    private Priority       priority;
-    private String        typology;
-    private String        subTypology;
-    private TicketStatus  status;
+    private Priority      priority;
+    private String        status;
     private String        createdBy;
     private String        agent;
-
+    private LocalDateTime createdAt;
+ 
     public TicketResponse() {}
-
+ 
     /**
-     * Constructor de conveniencia que mapea directamente desde la entidad.
+     * Mapea directamente desde la entidad Ticket.
+     * Genera ref, traduce status y asigna createdAt automáticamente.
      */
     public static TicketResponse from(Ticket ticket) {
         TicketResponse dto = new TicketResponse();
-        dto.idTicket     = ticket.getIdTicket();
-        dto.creationDate = ticket.getCreationDate();
-        dto.title        = ticket.getTitle();
-        dto.description  = ticket.getDescription();
-        dto.priority     = ticket.getPriority();
-        dto.typology     = ticket.getTypology();
-        dto.subTypology  = ticket.getSubTypology();
-        dto.status       = ticket.getStatus();
-        dto.createdBy    = ticket.getCreatedBy().getUsername();
-        dto.agent        = ticket.getAgent() != null
-                           ? ticket.getAgent().getUsername()
-                           : null;
+        dto.id          = ticket.getIdTicket();
+        dto.ref         = "INC-" + ticket.getIdTicket();
+        dto.title       = ticket.getTitle();
+        dto.description = ticket.getDescription();
+        dto.priority    = ticket.getPriority();
+        dto.status      = mapStatus(ticket.getStatus());
+        dto.createdBy   = ticket.getCreatedBy().getUsername();
+        dto.agent       = ticket.getAgent() != null
+                          ? ticket.getAgent().getUsername()
+                          : null;
+        dto.createdAt   = ticket.getCreationDate();
         return dto;
     }
-    
-     /**
-     * Traduce el enum interno TicketStatus a un string legible para el cliente.
+ 
+    /**
+     * Traduce el enum interno TicketStatus a texto legible para el cliente.
      */
     private static String mapStatus(TicketStatus status) {
         return switch (status) {
@@ -56,36 +77,31 @@ public class TicketResponse {
             case RESOLVED    -> "Resolved";
         };
     }
-    
-    // ─── Getters & Setters ────────────────────────────────────────────────
-
-    public Long getIdTicket()                           { return idTicket; }
-    public void setIdTicket(Long idTicket)              { this.idTicket = idTicket; }
-
-    public LocalDateTime getCreationDate()              { return creationDate; }
-    public void setCreationDate(LocalDateTime date)     { this.creationDate = date; }
-
-    public String getTitle()                            { return title; }
-    public void setTitle(String title)                  { this.title = title; }
-
-    public String getDescription()                      { return description; }
-    public void setDescription(String description)      { this.description = description; }
-
-    public Priority getPriority()                        { return priority; }
-    public void setPriority(Priority priority)           { this.priority = priority; }
-
-    public String getTypology()                         { return typology; }
-    public void setTypology(String typology)            { this.typology = typology; }
-
-    public String getSubTypology()                      { return subTypology; }
-    public void setSubTypology(String subTypology)      { this.subTypology = subTypology; }
-
-    public TicketStatus getStatus()                     { return status; }
-    public void setStatus(TicketStatus status)          { this.status = status; }
-
-    public String getCreatedBy()                        { return createdBy; }
-    public void setCreatedBy(String createdBy)          { this.createdBy = createdBy; }
-
-    public String getAgent()                            { return agent; }
-    public void setAgent(String agent)                  { this.agent = agent; }
+ 
+    public Long getId()                              { return id; }
+    public void setId(Long id)                       { this.id = id; }
+ 
+    public String getRef()                           { return ref; }
+    public void setRef(String ref)                   { this.ref = ref; }
+ 
+    public String getTitle()                         { return title; }
+    public void setTitle(String title)               { this.title = title; }
+ 
+    public String getDescription()                   { return description; }
+    public void setDescription(String description)   { this.description = description; }
+ 
+    public Priority getPriority()                    { return priority; }
+    public void setPriority(Priority priority)       { this.priority = priority; }
+ 
+    public String getStatus()                        { return status; }
+    public void setStatus(String status)             { this.status = status; }
+ 
+    public String getCreatedBy()                     { return createdBy; }
+    public void setCreatedBy(String createdBy)       { this.createdBy = createdBy; }
+ 
+    public String getAgent()                         { return agent; }
+    public void setAgent(String agent)               { this.agent = agent; }
+ 
+    public LocalDateTime getCreatedAt()              { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt){ this.createdAt = createdAt; }
 }
