@@ -2,6 +2,7 @@ package com.ticketingmaster.ticketplusserver.serv;
 
 import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketResponse;
+import com.ticketingmaster.ticketplusserver.model.Priority;
 import com.ticketingmaster.ticketplusserver.model.Ticket;
 import com.ticketingmaster.ticketplusserver.model.TicketStatus;
 import com.ticketingmaster.ticketplusserver.model.User;
@@ -128,6 +129,26 @@ public class ServTicket {
  
         User agent = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
+ 
+        ticket.setAgent(agent);
+        ticket.setStatus(TicketStatus.IN_PROGRESS);
+        return TicketResponse.from(ticketRepo.save(ticket));
+    }
+    
+    /**
+     * El ADMIN asigna el ticket a otro agente indicado en el body.
+     * El estado cambia automáticamente a IN_PROGRESS.
+     *
+     * @param ticketId      ID del ticket a reasignar.
+     * @param agentUsername username del agente destino recibido en el body.
+     */
+    @Transactional
+    public TicketResponse asignarOtroAgente(Long ticketId, String agentUsername) {
+        Ticket ticket = ticketRepo.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
+ 
+        User agent = userRepo.findByUsername(agentUsername)
+                .orElseThrow(() -> new RuntimeException("Agente no encontrado: " + agentUsername));
  
         ticket.setAgent(agent);
         ticket.setStatus(TicketStatus.IN_PROGRESS);

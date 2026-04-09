@@ -4,6 +4,7 @@ import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketResponse;
 import com.ticketingmaster.ticketplusserver.dto.ChangeStatusRequest;
 import com.ticketingmaster.ticketplusserver.dto.ChangePriorityRequest;
+import com.ticketingmaster.ticketplusserver.dto.AssignAgentRequest;
 import com.ticketingmaster.ticketplusserver.serv.ServTicket;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -98,6 +99,25 @@ public class TicketController {
                                                     Authentication auth) {
         try {
             return ResponseEntity.ok(servTicket.asignarAgente(id, auth.getName()));
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /**
+     * El ADMIN asigna el ticket a otro agente indicado en el body.
+     * El status cambia automáticamente a "In Progress".
+     *
+     * Recibe: { "agentUsername": "erik" }
+     */
+    @PatchMapping("/{id}/agent")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<TicketResponse> asignarOtroAgente(@PathVariable Long id,
+                                                            @RequestBody AssignAgentRequest request) {
+        try {
+            return ResponseEntity.ok(
+                    servTicket.asignarOtroAgente(id, request.getAgentUsername())
+            );
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
