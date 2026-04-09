@@ -169,4 +169,24 @@ public class TicketController {
             return ResponseEntity.notFound().build();
         }
     }
+    
+    /**
+     * Cierra un ticket cambiando su estado a "Closed".
+     * ADMIN puede cerrar cualquier ticket.
+     * USER solo puede cerrar sus propios tickets
+     * — devuelve 403 Forbidden si intenta cerrar uno ajeno.
+     */
+    @PatchMapping("/{id}/close")
+    public ResponseEntity<TicketResponse> cerrarTicket(@PathVariable Long id,
+                                                       Authentication auth) {
+        try {
+            return ResponseEntity.ok(
+                    servTicket.cerrarTicket(id, auth.getName(), esAdmin(auth))
+            );
+        } catch (SecurityException e) {
+            return ResponseEntity.status(403).build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }

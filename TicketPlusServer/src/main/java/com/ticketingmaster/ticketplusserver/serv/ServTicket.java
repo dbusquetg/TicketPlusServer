@@ -52,6 +52,33 @@ public class ServTicket {
  
         return TicketResponse.from(ticketRepo.save(ticket));
     }
+    
+    /**
+     * Cierra un ticket cambiando su estado a CLOSED.
+     * ADMIN puede cerrar cualquier ticket.
+     * USER solo puede cerrar sus propios tickets —
+     * si intenta cerrar uno ajeno se lanza SecurityException
+     * para que el controlador devuelva 403 Forbidden.
+     *
+     * @param ticketId ID del ticket a cerrar.
+     * @param username username del usuario autenticado extraído del JWT.
+     * @param esAdmin  true si el usuario tiene rol ADMIN.
+     * @return TicketResponse con status CLOSED.
+     * @throws SecurityException si el USER intenta cerrar un ticket ajeno.
+     * @throws RuntimeException  si el ticket no existe.
+     */
+    @Transactional
+    public TicketResponse cerrarTicket(Long ticketId, String username, boolean esAdmin) {
+        Ticket ticket = ticketRepo.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
+ 
+        if (!esAdmin && !ticket.getCreatedBy().getUsername().equals(username)) {
+            throw new SecurityException("No tienes permiso para cerrar este ticket");
+        }
+ 
+        ticket.setStatus(TicketStatus.CLOSED);
+        return TicketResponse.from(ticketRepo.save(ticket));
+    }
  
     // ─── Listar ───────────────────────────────────────────────────────────
  
