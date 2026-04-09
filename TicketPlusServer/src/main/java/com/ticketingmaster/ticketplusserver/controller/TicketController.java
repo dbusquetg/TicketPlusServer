@@ -2,7 +2,7 @@ package com.ticketingmaster.ticketplusserver.controller;
 
 import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketResponse;
-import com.ticketingmaster.ticketplusserver.model.TicketStatus;
+import com.ticketingmaster.ticketplusserver.dto.ChangeStatusRequest;
 import com.ticketingmaster.ticketplusserver.serv.ServTicket;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,15 +11,16 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+ 
 /**
  * Controlador REST para la gestión de tickets.
  *
  * Endpoints:
- *   POST /api/tickets              → Crear ticket         (USER, ADMIN)
- *   GET  /api/tickets              → Listar tickets       (USER ve los suyos, ADMIN ve todos)
- *   GET  /api/tickets/{id}         → Detalle de ticket    (USER solo los suyos, ADMIN cualquiera)
- *   PUT  /api/tickets/{id}/assign  → Asignar agente       (solo ADMIN)
- *   PUT  /api/tickets/{id}/status  → Cambiar estado       (solo ADMIN)
+ *   POST  /api/tickets              → Crear ticket         (USER, ADMIN)
+ *   GET   /api/tickets              → Listar tickets       (USER ve los suyos, ADMIN ve todos)
+ *   GET   /api/tickets/{id}         → Detalle de ticket    (USER solo los suyos, ADMIN cualquiera)
+ *   PUT   /api/tickets/{id}/assign  → Asignar agente       (solo ADMIN)
+ *   PATCH /api/tickets/{id}/status  → Cambiar estado       (solo ADMIN)
  */
 @RestController
 @RequestMapping("/api/tickets")
@@ -70,11 +71,8 @@ public class TicketController {
  
     /**
      * Devuelve el detalle de un ticket por su ID.
-     *
-     * ADMIN → puede ver cualquier ticket.
-     * USER  → solo puede ver sus propios tickets.
-     *         Si intenta ver uno ajeno devuelve 404
-     *         (no 403, para no revelar que el ticket existe).
+     * ADMIN puede ver cualquier ticket.
+     * USER solo puede ver los suyos — devuelve 404 si intenta ver uno ajeno.
      */
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> obtenerPorId(@PathVariable Long id,
@@ -106,13 +104,21 @@ public class TicketController {
     /**
      * Cambia el estado de un ticket.
      * Acceso exclusivo para ADMIN.
+     *
+     * Recibe el nuevo estado como texto legible en el body:
+     *   { "status": "In Progress" }
+     *
+     * Valores válidos: "Opened", "Pending", "In Progress",
+     *                  "Resolved", "Solved", "Closed"
      */
-    @PutMapping("/{id}/status")
+    @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<TicketResponse> cambiarEstado(@PathVariable Long id,
-                                                        @RequestParam TicketStatus status) {
+                                                        @RequestBody ChangeStatusRequest request) {
         try {
-            return ResponseEntity.ok(servTicket.cambiarEstado(id, status));
+            return ResponseEntity.ok(servTicket.cambiarEstado(id, request.getStatus()));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

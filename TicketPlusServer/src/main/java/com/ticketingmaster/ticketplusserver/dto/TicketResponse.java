@@ -20,6 +20,8 @@ import java.time.LocalDateTime;
  *   PENDING     → "Pending"
  *   IN_PROGRESS → "In Progress"
  *   RESOLVED    → "Resolved"
+ *   SOLVED      → "Solved"
+ *   CLOSED      → "Closed"
  */
 public class TicketResponse {
  
@@ -64,6 +66,8 @@ public class TicketResponse {
             case PENDING     -> "Pending";
             case IN_PROGRESS -> "In Progress";
             case RESOLVED    -> "Resolved";
+            case SOLVED      -> "Solved";
+            case CLOSED      -> "Closed";
         };
     }
  

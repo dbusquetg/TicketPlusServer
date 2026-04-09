@@ -66,12 +66,8 @@ public class ServTicket {
     }
  
     /**
-     * Devuelve todos los tickets creados por el usuario autenticado,
-     * independientemente del estado (Opened, Pending, In Progress, Resolved).
+     * Devuelve todos los tickets creados por el usuario autenticado.
      * Llamado cuando el usuario autenticado tiene rol USER.
-     *
-     * @param username username del cliente autenticado.
-     * @return lista completa de tickets del cliente.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorCliente(String username) {
@@ -98,16 +94,9 @@ public class ServTicket {
  
     /**
      * Devuelve el detalle de un ticket por su ID.
-     *
-     * ADMIN → puede ver cualquier ticket.
-     * USER  → solo puede ver sus propios tickets.
-     *         Si intenta ver uno ajeno se lanza RuntimeException
-     *         para que el controlador devuelva 404 (no 403,
-     *         para no revelar que el ticket existe).
-     *
-     * @param id      ID del ticket.
-     * @param username username del usuario autenticado extraído del JWT.
-     * @param esAdmin true si el usuario tiene rol ADMIN.
+     * ADMIN puede ver cualquier ticket.
+     * USER solo puede ver sus propios tickets — si intenta ver uno ajeno
+     * se lanza RuntimeException para devolver 404 (no 403).
      */
     @Transactional(readOnly = true)
     public TicketResponse obtenerPorId(Long id, String username, boolean esAdmin) {
@@ -142,15 +131,45 @@ public class ServTicket {
     // ─── Cambiar estado ───────────────────────────────────────────────────
  
     /**
-     * Cambia el estado de un ticket.
-     * Solo puede ejecutarlo un ADMIN.
+     * Cambia el estado de un ticket a partir del texto legible enviado
+     * por el cliente. Solo puede ejecutarlo un ADMIN.
+     *
+     * Valores válidos recibidos del cliente:
+     *   "Opened", "Pending", "In Progress", "Resolved", "Solved", "Closed"
+     *
+     * @param ticketId  ID del ticket.
+     * @param statusStr estado en texto legible enviado por el cliente.
+     * @return TicketResponse actualizado.
+     * @throws IllegalArgumentException si el valor de status no es válido.
      */
     @Transactional
-    public TicketResponse cambiarEstado(Long ticketId, TicketStatus status) {
+    public TicketResponse cambiarEstado(Long ticketId, String statusStr) {
         Ticket ticket = ticketRepo.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket no encontrado: " + ticketId));
  
-        ticket.setStatus(status);
+        ticket.setStatus(parseStatus(statusStr));
         return TicketResponse.from(ticketRepo.save(ticket));
+    }
+ 
+    /**
+     * Traduce el texto legible del cliente al enum interno TicketStatus.
+     *
+     * @param statusStr texto enviado por el cliente.
+     * @return TicketStatus correspondiente.
+     * @throws IllegalArgumentException si el valor no es reconocido.
+     */
+    private TicketStatus parseStatus(String statusStr) {
+        return switch (statusStr) {
+            case "Opened"      -> TicketStatus.UNASSIGNED;
+            case "Pending"     -> TicketStatus.PENDING;
+            case "In Progress" -> TicketStatus.IN_PROGRESS;
+            case "Resolved"    -> TicketStatus.RESOLVED;
+            case "Solved"      -> TicketStatus.SOLVED;
+            case "Closed"      -> TicketStatus.CLOSED;
+            default -> throw new IllegalArgumentException(
+                    "Estado no válido: '" + statusStr + "'. " +
+                    "Valores aceptados: Opened, Pending, In Progress, Resolved, Solved, Closed"
+            );
+        };
     }
 }
