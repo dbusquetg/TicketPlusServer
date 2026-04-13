@@ -1,5 +1,7 @@
 package com.ticketingmaster.ticketplusserver.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 /**
  * DTO para añadir una nueva entrada al hilo de un ticket.
  * El tipo (T/R) y el autor se derivan del rol del usuario autenticado
@@ -7,6 +9,7 @@ package com.ticketingmaster.ticketplusserver.dto;
  */
 public class DetailTicketRequest {
 
+    @JsonProperty("content")
     private String contentDetail;
 
     public DetailTicketRequest() {}
