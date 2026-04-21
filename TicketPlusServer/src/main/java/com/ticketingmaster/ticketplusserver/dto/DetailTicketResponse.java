@@ -35,8 +35,6 @@ public class DetailTicketResponse {
         return dto;
     }
 
-    // ─── Getters & Setters ────────────────────────────────────────────────
-
     public Long getIdDetail()                           { return idDetail; }
     public void setIdDetail(Long idDetail)              { this.idDetail = idDetail; }
 

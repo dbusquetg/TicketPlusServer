@@ -87,9 +87,7 @@ class TicketControllerTest {
                 .get("id").asLong();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  POST /api/tickets — Crear ticket
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("POST /api/tickets — Crear ticket")
@@ -149,9 +147,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  GET /api/tickets — Listar tickets
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets — Listar tickets")
@@ -185,9 +181,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  GET /api/tickets/{id} — Detalle de ticket
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets/{id} — Detalle de ticket")
@@ -221,9 +215,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  PATCH /api/tickets/{id}/assign — Asignarme el ticket
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/assign — Asignarme el ticket")
@@ -248,9 +240,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  PATCH /api/tickets/{id}/agent — Asignar a otro agente
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/agent — Asignar a otro agente")
@@ -289,9 +279,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  PATCH /api/tickets/{id}/status — Cambiar estado
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/status — Cambiar estado")
@@ -340,9 +328,7 @@ class TicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  PATCH /api/tickets/{id}/priority — Cambiar prioridad
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/priority — Cambiar prioridad")
@@ -380,10 +366,8 @@ class TicketControllerTest {
                     .andExpect(status().isBadRequest());
         }
     }
-
-    // ════════════════════════════════════════════════════════════════════════
+ 
     //  PATCH /api/tickets/{id}/close — Cerrar ticket
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/close — Cerrar ticket")

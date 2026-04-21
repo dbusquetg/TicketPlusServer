@@ -11,6 +11,7 @@ import java.util.List;
  * Repositorio JPA para la entidad DetailTicket.
  * Proporciona consultas para gestionar el hilo de conversación
  * de cada ticket.
+ * @author David Busquet Gimeno
  */
 public interface DetailTicketRepo extends JpaRepository<DetailTicket, Long> {
 

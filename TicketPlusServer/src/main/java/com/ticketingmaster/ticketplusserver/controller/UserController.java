@@ -13,14 +13,18 @@ import java.util.List;
  *
  * Endpoints:
  *   GET /api/users/agents → Listar agentes (solo ADMIN)
- * @author David.Busquet
+ * @author David Busquet
  */
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
  
     private final ServUser servUser;
- 
+    
+    /**
+     * Constructor, recibe el servicio de usuario com servUser
+     * @param servUser ServUser
+     */
     public UserController(ServUser servUser) {
         this.servUser = servUser;
     }

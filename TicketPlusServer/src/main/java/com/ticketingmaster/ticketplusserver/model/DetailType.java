@@ -5,6 +5,7 @@ package com.ticketingmaster.ticketplusserver.model;
  *
  * T — Pregunta o mensaje del cliente (de "Ticket" o "Question").
  * R — Respuesta del gestor/agente.
+ * @author David Busquet Gimeno
  */
 public enum DetailType {
     T,

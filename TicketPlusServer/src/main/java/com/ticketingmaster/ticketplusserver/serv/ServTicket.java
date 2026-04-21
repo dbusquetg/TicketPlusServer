@@ -30,11 +30,14 @@ public class ServTicket {
         this.userRepo   = userRepo;
     }
  
-    // ─── Crear ────────────────────────────────────────────────────────────
+    //  Crear 
  
     /**
      * Crea un nuevo ticket. El estado inicial es siempre UNASSIGNED.
      * El creador se resuelve a partir del username extraído del JWT.
+     * @param request Solicitud en forma de TicketRequest.
+     * @param username Nombre del usuario.
+     * @return Devuelve una respuesta en forma de TicketResponse,
      */
     @Transactional
     public TicketResponse crear(TicketRequest request, String username) {
@@ -80,11 +83,13 @@ public class ServTicket {
         return TicketResponse.from(ticketRepo.save(ticket));
     }
  
-    // ─── Listar ───────────────────────────────────────────────────────────
+    //  Listar 
  
     /**
      * Devuelve todos los tickets del sistema.
      * Llamado cuando el usuario autenticado tiene rol ADMIN.
+     * Sin parametros de entrada.
+     * @return Lista de respuestas en forma de TicketResponse.
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerTodos() {
@@ -96,6 +101,8 @@ public class ServTicket {
     /**
      * Devuelve todos los tickets creados por el usuario autenticado.
      * Llamado cuando el usuario autenticado tiene rol USER.
+     * @param username Nombre de usuario
+     * @return Lista de respuestas en formato TicketResponse
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorCliente(String username) {
@@ -108,6 +115,8 @@ public class ServTicket {
  
     /**
      * Devuelve los tickets asignados a un agente concreto.
+     * @param username Nombre de usuario
+     * @return Lista de respuestas en formato TicketResponse
      */
     @Transactional(readOnly = true)
     public List<TicketResponse> obtenerPorAgente(String username) {
@@ -118,13 +127,19 @@ public class ServTicket {
                 .collect(Collectors.toList());
     }
  
-    // ─── Detalle ──────────────────────────────────────────────────────────
+    //  Detalle 
  
     /**
      * Devuelve el detalle de un ticket por su ID.
      * ADMIN puede ver cualquier ticket.
      * USER solo puede ver sus propios tickets — si intenta ver uno ajeno
      * se lanza RuntimeException para devolver 404 (no 403).
+     * 
+     * @param id ID del ticket a cerrar.
+     * @param username username del usuario autenticado extraído del JWT.
+     * @param esAdmin  true si el usuario tiene rol ADMIN.
+     * @return Respuesta en formato TicketResponse con status CLOSED.
+     * @throws RuntimeException  si el ticket no existe.
      */
     @Transactional(readOnly = true)
     public TicketResponse obtenerPorId(Long id, String username, boolean esAdmin) {
@@ -138,7 +153,7 @@ public class ServTicket {
         return TicketResponse.from(ticket);
     }
  
-    // ─── Asignar agente ───────────────────────────────────────────────────
+    //  Asignar agente 
  
      /**
      * El ADMIN autenticado se asigna a sí mismo el ticket.
@@ -168,6 +183,7 @@ public class ServTicket {
      *
      * @param ticketId      ID del ticket a reasignar.
      * @param agentUsername username del agente destino recibido en el body.
+     * @return Respuesta en formato TicketResponse con el nuevo agente asignado.
      */
     @Transactional
     public TicketResponse asignarOtroAgente(Long ticketId, String agentUsername) {
@@ -182,7 +198,7 @@ public class ServTicket {
         return TicketResponse.from(ticketRepo.save(ticket));
     }
  
-    // ─── Cambiar estado ───────────────────────────────────────────────────
+    //  Cambiar estado 
  
     /**
      * Cambia el estado de un ticket a partir del texto legible enviado
@@ -259,6 +275,7 @@ public class ServTicket {
  
     /**
      * Traduce el texto del cliente al enum interno Priority.
+     * @param priorityStr priridad a parsear.
      */
     private Priority parsePriority(String priorityStr) {
         return switch (priorityStr) {

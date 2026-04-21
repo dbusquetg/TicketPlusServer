@@ -7,47 +7,48 @@ import java.time.LocalDateTime;
  * Entidad que representa una entrada del hilo de conversación de un ticket.
  * Cada entrada puede ser una pregunta del cliente (T) o una respuesta
  * del gestor (R), formando el historial completo del ticket.
+ * @author David Busquet Gimeno
  */
 @Entity
 @Table(name = "detail_ticket")
 public class DetailTicket {
 
-    // ─── Primary Key ──────────────────────────────────────────────────────
+    //  Primary Key 
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_detail")
     private Long idDetail;
 
-    // ─── Relación con Ticket ──────────────────────────────────────────────
+    //  Relación con Ticket 
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_ticket", nullable = false)
     private Ticket ticket;
 
-    // ─── Tipo de entrada ──────────────────────────────────────────────────
+    //  Tipo de entrada 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type_detail", nullable = false, length = 1)
     private DetailType typeDetail;
 
-    // ─── Contenido ────────────────────────────────────────────────────────
+    //  Contenido 
 
     @Column(name = "content_detail", nullable = false, length = 400)
     private String contentDetail;
 
-    // ─── Fecha de creación ────────────────────────────────────────────────
+    //  Fecha de creación 
 
     @Column(name = "creation_date", nullable = false)
     private LocalDateTime creationDate;
 
-    // ─── Autor de la entrada ──────────────────────────────────────────────
+    //  Autor de la entrada 
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "author", nullable = false)
     private User author;
 
-    // ─── Constructors ─────────────────────────────────────────────────────
+    //  Constructors
 
     public DetailTicket() {}
 
@@ -60,7 +61,7 @@ public class DetailTicket {
         this.creationDate  = LocalDateTime.now();
     }
 
-    // ─── Getters & Setters ────────────────────────────────────────────────
+    //  Getters & Setters 
 
     public Long getIdDetail()                           { return idDetail; }
     public void setIdDetail(Long idDetail)              { this.idDetail = idDetail; }

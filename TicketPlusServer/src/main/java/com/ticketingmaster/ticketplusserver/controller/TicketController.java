@@ -23,6 +23,8 @@ import java.util.List;
  *   GET   /api/tickets/{id}         → Detalle de ticket    (USER solo los suyos, ADMIN cualquiera)
  *   PUT   /api/tickets/{id}/assign  → Asignar agente       (solo ADMIN)
  *   PATCH /api/tickets/{id}/status  → Cambiar estado       (solo ADMIN)
+ * @author David Busquet
+ * 
  */
 @RestController
 @RequestMapping("/api/tickets")
@@ -34,18 +36,21 @@ public class TicketController {
         this.servTicket = servTicket;
     }
  
-    // ─── Helper ───────────────────────────────────────────────────────────
+    // Helper
  
     private boolean esAdmin(Authentication auth) {
         return auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
     }
  
-    // ─── Endpoints ────────────────────────────────────────────────────────
+    // Endpoints
  
     /**
      * Crea un nuevo ticket.
      * El creador se obtiene del JWT, no del body.
+     * @param request Solicitud en forma de TicketRequest
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con TicketResponse si existe, sino vacio.
      */
     @PostMapping
     public ResponseEntity<TicketResponse> crear(@RequestBody TicketRequest request,
@@ -61,6 +66,8 @@ public class TicketController {
      * Lista tickets según el rol del usuario autenticado.
      * ADMIN → todos los tickets del sistema.
      * USER  → solo los tickets que él ha creado.
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con una lista de TicketResponse que puede llegar vacía.
      */
     @GetMapping
     public ResponseEntity<List<TicketResponse>> listar(Authentication auth) {
@@ -75,6 +82,9 @@ public class TicketController {
      * Devuelve el detalle de un ticket por su ID.
      * ADMIN puede ver cualquier ticket.
      * USER solo puede ver los suyos — devuelve 404 si intenta ver uno ajeno.
+     * @param id ID del ticket buscado en la BD.
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @GetMapping("/{id}")
     public ResponseEntity<TicketResponse> obtenerPorId(@PathVariable Long id,
@@ -92,6 +102,9 @@ public class TicketController {
      * El ADMIN autenticado se asigna a sí mismo el ticket.
      * No recibe body — el agente se toma directamente del JWT.
      * El status cambia automáticamente a "In Progress".
+     * @param id ID del ticket buscado en la BD.
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @PatchMapping("/{id}/assign")
     @PreAuthorize("hasRole('ADMIN')")
@@ -109,6 +122,9 @@ public class TicketController {
      * El status cambia automáticamente a "In Progress".
      *
      * Recibe: { "agentUsername": "erik" }
+     * @param id ID del ticket buscado en la BD.
+     * @param request Solicitud en forma de AssignAgentRequest
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @PatchMapping("/{id}/agent")
     @PreAuthorize("hasRole('ADMIN')")
@@ -132,6 +148,9 @@ public class TicketController {
      *
      * Valores válidos: "Opened", "Pending", "In Progress",
      *                  "Resolved", "Solved", "Closed"
+     * @param id ID del ticket buscado en la BD.
+     * @param request Solicitud en forma de ChangeStatusRequest
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @PatchMapping("/{id}/status")
     @PreAuthorize("hasRole('ADMIN')")
@@ -153,6 +172,10 @@ public class TicketController {
      * — devuelve 404 si intenta modificar uno ajeno.
      *
      * Valores válidos: "LOW", "MEDIUM", "HIGH", "CRITICAL"
+     * @param id ID del ticket buscado en la BD.
+     * @param request Solicitud en forma de ChangePriorityRequest
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @PatchMapping("/{id}/priority")
     public ResponseEntity<TicketResponse> cambiarPrioridad(@PathVariable Long id,
@@ -175,6 +198,9 @@ public class TicketController {
      * ADMIN puede cerrar cualquier ticket.
      * USER solo puede cerrar sus propios tickets
      * — devuelve 403 Forbidden si intenta cerrar uno ajeno.
+     * @param id ID del ticket buscado en la BD.
+     * @param auth autenticación en forma de objeto Authentication
+     * @return ResponseEntity con TicketResponse si no esta vacio.
      */
     @PatchMapping("/{id}/close")
     public ResponseEntity<TicketResponse> cerrarTicket(@PathVariable Long id,

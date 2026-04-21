@@ -17,11 +17,17 @@ import java.util.List;
 public class UserDetailsServiceImpl implements UserDetailsService {
 
     private final UserRepo userRepository;
-
+    // Construcotr
     public UserDetailsServiceImpl(UserRepo userRepository) {
         this.userRepository = userRepository;
     }
-
+    
+    /**
+     * Carga la información del usuario mediante su nombre de usuario.
+     * @param username Nombre de usuario
+     * @return Detalles del usuario en forma UserDetails.
+     * @throws UsernameNotFoundException 
+     */
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         User user = userRepository.findByUsername(username)

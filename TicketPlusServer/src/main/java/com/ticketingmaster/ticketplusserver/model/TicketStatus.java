@@ -9,6 +9,7 @@ package com.ticketingmaster.ticketplusserver.model;
  * RESOLVED    — Resuelto internamente.                     → "Resolved"
  * SOLVED      — Confirmado como solucionado por el cliente.→ "Solved"
  * CLOSED      — Cerrado definitivamente.                   → "Closed"
+ * @author David Busquet Gimeno
  */
 public enum TicketStatus {
     UNASSIGNED,

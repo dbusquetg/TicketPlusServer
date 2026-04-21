@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Tests de integración para DetailTicketController.
  * Cubre los endpoints de hilo (/details) y comentarios (/comments).
  *
- * Coloca en: src/test/java/com/ticketingmaster/ticketplusserver/
+ * @Author David Busquet
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -45,7 +45,7 @@ class DetailTicketControllerTest {
     private String userToken;
     private Long   ticketId;
 
-    // ─── Setup ────────────────────────────────────────────────────────────
+    //  Setup 
 
     @BeforeEach
     void setUp() throws Exception {
@@ -53,10 +53,16 @@ class DetailTicketControllerTest {
         detailRepo.deleteAll();
         ticketRepo.deleteAll();
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("user1", "admin123");
+        userToken  = obtenerToken("david", "admin123");
         ticketId   = crearTicket(userToken);
     }
-
+    /**
+     * Obtiene token para poder realizar los tests
+     * @param username Nombre de usuario de la BD
+     * @param password Contraseña del usuario
+     * @return Token del usuario.
+     * @throws Exception 
+     */
     private String obtenerToken(String username, String password) throws Exception {
         LoginRequest req = new LoginRequest();
         req.setUsername(username);
@@ -71,7 +77,8 @@ class DetailTicketControllerTest {
         return objectMapper.readTree(result.getResponse().getContentAsString())
                 .get("token").asText();
     }
-
+    
+    // POST /api/tickets «Crear Ticket» Crear ticket 
     private Long crearTicket(String token) throws Exception {
         TicketRequest req = new TicketRequest();
         req.setTitle("PC no enciende");
@@ -89,9 +96,7 @@ class DetailTicketControllerTest {
                 .get("id").asLong();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  POST /api/tickets/{id}/details — Añadir entrada al hilo
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("POST /api/tickets/{id}/details — Añadir entrada al hilo")
@@ -142,9 +147,8 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+
     //  GET /api/tickets/{id}/details — Ver hilo completo
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets/{id}/details — Ver hilo completo")
@@ -190,9 +194,7 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  POST /api/tickets/{id}/comments — Añadir comentario
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("POST /api/tickets/{id}/comments — Añadir comentario")
@@ -235,9 +237,7 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  GET /api/tickets/{id}/comments — Obtener comentarios
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets/{id}/comments — Obtener comentarios")

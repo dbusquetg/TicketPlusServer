@@ -12,14 +12,14 @@ import java.time.LocalDateTime;
 @Table(name = "tickets")
 public class Ticket {
 
-    // ─── Primary Key ──────────────────────────────────────────────────────
+    //  Primary Key 
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_ticket")
     private Long idTicket;
 
-    // ─── Campos básicos ───────────────────────────────────────────────────
+    //  Campos básicos 
 
     @Column(name = "creation_date", nullable = false)
     private LocalDateTime creationDate;
@@ -40,13 +40,13 @@ public class Ticket {
     @Column(name = "sub_typology", length = 100)
     private String subTypology;
 
-    // ─── Estado ───────────────────────────────────────────────────────────
+    //  Estado 
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20)
     private TicketStatus status;
 
-    // ─── Relaciones con User ──────────────────────────────────────────────
+    //  Relaciones con User 
 
     /**
      * Cliente que crea el ticket. Obligatorio.

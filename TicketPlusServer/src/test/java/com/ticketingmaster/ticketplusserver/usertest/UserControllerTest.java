@@ -62,9 +62,7 @@ class UserControllerTest {
                 .get("token").asText();
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  GET /api/users/agents — Listar agentes
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/users/agents — Listar agentes")

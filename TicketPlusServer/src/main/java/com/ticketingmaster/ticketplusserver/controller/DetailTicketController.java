@@ -21,6 +21,7 @@ import java.util.List;
  *
  * Los cuatro endpoints usan la misma entidad DetailTicket internamente.
  * El tipo T/R se asigna automáticamente según el rol del usuario autenticado.
+ * @author David Busquet
  */
 @RestController
 @RequestMapping("/api/tickets/{ticketId}")
@@ -36,6 +37,11 @@ public class DetailTicketController {
      * Añade una nueva entrada al hilo del ticket.
      * USER  → tipo T (pregunta/mensaje del cliente).
      * ADMIN → tipo R (respuesta del gestor).
+     * @param ticketId ID del ticket buscado en la BD.
+     * @param request objeto DetailTicketRequest como solicitud.
+     * @param auth autenticación en forma Authentication.
+     * @return Devuelve una ResponseEntity con DetailTicketResponse si lo devuelve,
+     * de lo contrario estará vacio.
      */
     @PostMapping("/details")
     public ResponseEntity<DetailTicketResponse> añadir(
@@ -56,6 +62,9 @@ public class DetailTicketController {
     /**
      * Devuelve el hilo completo de conversación del ticket,
      * ordenado cronológicamente.
+     * @param ticketId ID del ticket buscado en la BD.
+     * @return Una ResponseEntity con una Lista de DetailTicket responses en caso
+     * de que las haya.
      */
     @GetMapping("/details")
     public ResponseEntity<List<DetailTicketResponse>> obtenerHilo(
@@ -73,6 +82,10 @@ public class DetailTicketController {
      *
      * Recibe:  { "content": "Puedes probar ahora Maria?" }
      * Devuelve 201 Created con ticketRef, ticketTitle, author, content y createdAt.
+     * @param ticketId ID del ticket buscado en la BD.
+     * @param request Solicitud en forma de DetailTicketRequest
+     * @param auth Autenticación en forma de obeto Authentication
+     * @return ResponseEntity con CommentResponse si no esta vacio.
      */
     @PostMapping("/comments")
     public ResponseEntity<CommentResponse> añadirComentario(
@@ -95,6 +108,8 @@ public class DetailTicketController {
      * Devuelve todos los comentarios del ticket ordenados por fecha ascendente.
      * El primer comentario es siempre el del usuario que abrió el ticket.
      * Devuelve 404 si el ticket no existe.
+     * @param ticketId ID del ticket buscado en la BD.
+     * @return ResponseEntity con CommentResponse si no esta vacio.
      */
     @GetMapping("/comments")
     public ResponseEntity<List<CommentResponse>> obtenerComentarios(
