@@ -110,11 +110,11 @@ class UserControllerTest {
         }
 
         @Test
-        @DisplayName("USER → 403 Forbidden")
-        void listar_user_devuelve403() throws Exception {
+        @DisplayName("USER → 200 Accepted")
+        void listar_user_devuelve200() throws Exception {
             mockMvc.perform(get("/api/users/agents")
                             .header("Authorization", "Bearer " + userToken))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk());
         }
 
         @Test

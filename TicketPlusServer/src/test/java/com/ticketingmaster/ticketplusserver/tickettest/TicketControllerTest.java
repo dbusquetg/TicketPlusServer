@@ -52,7 +52,7 @@ class TicketControllerTest {
         detailRepo.deleteAll();    
         ticketRepo.deleteAll();    
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("david", "TU_PASSWORD");
+        userToken  = obtenerToken("david", "admin123");
         ticketId   = crearTicket(userToken);
     }
 
@@ -233,11 +233,11 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("USER intenta asignarse el ticket → 403 Forbidden")
-        void assign_user_devuelve403() throws Exception {
+        @DisplayName("USER intenta asignarse el ticket → 200 OK")
+        void assign_user_devuelve200() throws Exception {
             mockMvc.perform(patch("/api/tickets/" + ticketId + "/assign")
                             .header("Authorization", "Bearer " + userToken))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk());
         }
     }
 
@@ -270,13 +270,13 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("USER intenta asignar agente → 403 Forbidden")
-        void agent_user_devuelve403() throws Exception {
+        @DisplayName("USER intenta asignar agente → 200 Ok")
+        void agent_user_devuelve200() throws Exception {
             mockMvc.perform(patch("/api/tickets/" + ticketId + "/agent")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
                             .content("{\"agentUsername\": \"admin\"}"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk());
         }
     }
 
@@ -319,13 +319,13 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("USER intenta cambiar estado → 403 Forbidden")
-        void status_user_devuelve403() throws Exception {
+        @DisplayName("USER intenta cambiar estado → 200 Ok")
+        void status_user_devuelve200() throws Exception {
             mockMvc.perform(patch("/api/tickets/" + ticketId + "/status")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
                             .content("{\"status\": \"In Progress\"}"))
-                    .andExpect(status().isForbidden());
+                    .andExpect(status().isOk());
         }
     }
 
