@@ -20,6 +20,7 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests de integración para DetailTicketController.
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class DetailTicketControllerTest {
 
     @Autowired private MockMvc                  mockMvc;
@@ -42,7 +44,6 @@ class DetailTicketControllerTest {
     private Long   ticketId;
 
     //  Setup 
-
     @BeforeEach
     void setUp() throws Exception {
         blacklistRepo.deleteAll();

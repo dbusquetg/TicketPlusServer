@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -25,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class UserControllerTest {
 
     @Autowired private MockMvc                  mockMvc;
@@ -40,7 +42,7 @@ class UserControllerTest {
     void setUp() throws Exception {
         blacklistRepo.deleteAll();
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("user1", "admin123");
+        userToken  = obtenerToken("david", "admin123");
     }
 
     private String obtenerToken(String username, String password) throws Exception {

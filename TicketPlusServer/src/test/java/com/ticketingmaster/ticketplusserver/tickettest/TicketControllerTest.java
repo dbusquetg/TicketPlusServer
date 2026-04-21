@@ -16,6 +16,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -29,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class TicketControllerTest {
 
     @Autowired private MockMvc                  mockMvc;
@@ -47,7 +49,7 @@ class TicketControllerTest {
         blacklistRepo.deleteAll();
         ticketRepo.deleteAll();
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("user1", "admin123");
+        userToken  = obtenerToken("david", "admin123");
         ticketId   = crearTicket(userToken);
     }
 
