@@ -7,6 +7,7 @@ import com.ticketingmaster.ticketplusserver.model.Priority;
 import com.ticketingmaster.ticketplusserver.repo.DetailTicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -20,16 +21,17 @@ import org.springframework.test.web.servlet.MvcResult;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Tests de integración para DetailTicketController.
- * El ticket se crea dentro de cada test para garantizar que el ID
- * está committed y visible para las requests MockMvc posteriores.
+ * Cubre los endpoints de hilo (/details) y comentarios (/comments).
  *
- * Coloca en: src/test/java/com/ticketingmaster/ticketplusserver/detailticket/
+ * @Author David Busquet
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class DetailTicketControllerTest {
 
     @Autowired private MockMvc                  mockMvc;
@@ -40,20 +42,25 @@ class DetailTicketControllerTest {
 
     private String adminToken;
     private String userToken;
+    private Long   ticketId;
 
-    // ─── Setup ────────────────────────────────────────────────────────────
-
+    //  Setup 
     @BeforeEach
     void setUp() throws Exception {
         blacklistRepo.deleteAll();
         detailRepo.deleteAll();
         ticketRepo.deleteAll();
-        adminToken = obtenerToken("admin",  "admin123");
-        userToken  = obtenerToken("david",  "david123");
+        adminToken = obtenerToken("admin", "admin123");
+        userToken  = obtenerToken("david", "admin123");
+        ticketId   = crearTicket(userToken);
     }
-
-    // ─── Helpers ──────────────────────────────────────────────────────────
-
+    /**
+     * Obtiene token para poder realizar los tests
+     * @param username Nombre de usuario de la BD
+     * @param password Contraseña del usuario
+     * @return Token del usuario.
+     * @throws Exception 
+     */
     private String obtenerToken(String username, String password) throws Exception {
         LoginRequest req = new LoginRequest();
         req.setUsername(username);
@@ -68,48 +75,30 @@ class DetailTicketControllerTest {
         return objectMapper.readTree(result.getResponse().getContentAsString())
                 .get("token").asText();
     }
-
-    /**
-     * Crea un ticket via HTTP y devuelve su ID.
-     * Al hacerlo via MockMvc, Spring hace commit de la transacción
-     * y el ID queda visible para requests posteriores.
-     */
+    
+    // POST /api/tickets «Crear Ticket» Crear ticket 
     private Long crearTicket(String token) throws Exception {
-        TicketRequest req = new TicketRequest();
-        req.setTitle("PC no enciende");
-        req.setDescription("Desde ayer no arranca");
-        req.setPriority(Priority.HIGH);
+    TicketRequest req = new TicketRequest();
+    req.setTitle("PC no enciende");
+    req.setDescription("Desde ayer no arranca");
+    req.setPriority(Priority.HIGH);
 
-        MvcResult result = mockMvc.perform(post("/api/tickets")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isCreated())
-                .andReturn();
+    MvcResult result = mockMvc.perform(post("/api/tickets")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + token)
+                    .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-        return objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("id").asLong();
-    }
+    Long id = objectMapper.readTree(result.getResponse().getContentAsString())
+            .get("id").asLong();
 
-    private void añadirDetalle(Long ticketId, String token, String content) throws Exception {
-        mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + token)
-                .content("{\"contentDetail\": \"" + content + "\"}"))
-                .andExpect(status().isCreated());
-    }
+    // Verifica que el ID es válido antes de continuar
+    assertThat(id).isPositive();
+    return id;
+}
 
-    private void añadirComentario(Long ticketId, String token, String content) throws Exception {
-        mockMvc.perform(post("/api/tickets/" + ticketId + "/comments")
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("Authorization", "Bearer " + token)
-                .content("{\"contentDetail\": \"" + content + "\"}"))
-                .andExpect(status().isCreated());
-    }
-
-    // ════════════════════════════════════════════════════════════════════════
     //  POST /api/tickets/{id}/details — Añadir entrada al hilo
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("POST /api/tickets/{id}/details — Añadir entrada al hilo")
@@ -118,8 +107,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("USER añade entrada → 201 con type T")
         void añadir_user_devuelve201ConTipoT() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
@@ -133,8 +120,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("ADMIN añade entrada → 201 con type R")
         void añadir_admin_devuelve201ConTipoR() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
@@ -157,8 +142,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Sin token → 403 Forbidden")
         void añadir_sinToken_devuelve403() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
                             .contentType(MediaType.APPLICATION_JSON)
                             .content("{\"contentDetail\": \"Mensaje\"}"))
@@ -166,9 +149,8 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
+
     //  GET /api/tickets/{id}/details — Ver hilo completo
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets/{id}/details — Ver hilo completo")
@@ -177,8 +159,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Hilo vacío → 200 con lista vacía")
         void hilo_vacio_devuelveLista() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(get("/api/tickets/" + ticketId + "/details")
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
@@ -189,9 +169,15 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Hilo con entradas → 200 ordenado cronológicamente")
         void hilo_conEntradas_devuelveOrdenado() throws Exception {
-            Long ticketId = crearTicket(userToken);
-            añadirDetalle(ticketId, userToken,  "Primera entrada");
-            añadirDetalle(ticketId, adminToken, "Segunda entrada");
+            mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + userToken)
+                    .content("{\"contentDetail\": \"Primera entrada\"}"));
+
+            mockMvc.perform(post("/api/tickets/" + ticketId + "/details")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + adminToken)
+                    .content("{\"contentDetail\": \"Segunda entrada\"}"));
 
             mockMvc.perform(get("/api/tickets/" + ticketId + "/details")
                             .header("Authorization", "Bearer " + adminToken))
@@ -210,19 +196,15 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  POST /api/tickets/{id}/comments — Añadir comentario
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("POST /api/tickets/{id}/comments — Añadir comentario")
     class AñadirComentario {
 
         @Test
-        @DisplayName("USER añade comentario → 201 con ticketRef, author y content")
+        @DisplayName("USER añade comentario → 201 con ticketRef, ticketTitle, author y content")
         void comentario_user_devuelve201() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(post("/api/tickets/" + ticketId + "/comments")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
@@ -238,8 +220,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("ADMIN añade comentario → 201")
         void comentario_admin_devuelve201() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(post("/api/tickets/" + ticketId + "/comments")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
@@ -259,9 +239,7 @@ class DetailTicketControllerTest {
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════
     //  GET /api/tickets/{id}/comments — Obtener comentarios
-    // ════════════════════════════════════════════════════════════════════════
 
     @Nested
     @DisplayName("GET /api/tickets/{id}/comments — Obtener comentarios")
@@ -270,8 +248,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Sin comentarios → 200 con lista vacía")
         void comentarios_sinComentarios_devuelveLista() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(get("/api/tickets/" + ticketId + "/comments")
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
@@ -282,9 +258,15 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Con comentarios → 200 ordenados cronológicamente")
         void comentarios_conComentarios_devuelveOrdenados() throws Exception {
-            Long ticketId = crearTicket(userToken);
-            añadirComentario(ticketId, userToken,  "Primer comentario");
-            añadirComentario(ticketId, adminToken, "Segundo comentario");
+            mockMvc.perform(post("/api/tickets/" + ticketId + "/comments")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + userToken)
+                    .content("{\"contentDetail\": \"Primer comentario\"}"));
+
+            mockMvc.perform(post("/api/tickets/" + ticketId + "/comments")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + adminToken)
+                    .content("{\"contentDetail\": \"Segundo comentario\"}"));
 
             mockMvc.perform(get("/api/tickets/" + ticketId + "/comments")
                             .header("Authorization", "Bearer " + adminToken))
@@ -306,8 +288,6 @@ class DetailTicketControllerTest {
         @Test
         @DisplayName("Sin token → 403 Forbidden")
         void comentarios_sinToken_devuelve403() throws Exception {
-            Long ticketId = crearTicket(userToken);
-
             mockMvc.perform(get("/api/tickets/" + ticketId + "/comments"))
                     .andExpect(status().isForbidden());
         }
