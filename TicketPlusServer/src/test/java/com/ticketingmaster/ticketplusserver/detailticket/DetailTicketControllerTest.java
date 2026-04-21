@@ -7,6 +7,7 @@ import com.ticketingmaster.ticketplusserver.model.Priority;
 import com.ticketingmaster.ticketplusserver.repo.DetailTicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -77,21 +78,25 @@ class DetailTicketControllerTest {
     
     // POST /api/tickets «Crear Ticket» Crear ticket 
     private Long crearTicket(String token) throws Exception {
-        TicketRequest req = new TicketRequest();
-        req.setTitle("PC no enciende");
-        req.setDescription("Desde ayer no arranca");
-        req.setPriority(Priority.HIGH);
+    TicketRequest req = new TicketRequest();
+    req.setTitle("PC no enciende");
+    req.setDescription("Desde ayer no arranca");
+    req.setPriority(Priority.HIGH);
 
-        MvcResult result = mockMvc.perform(post("/api/tickets")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .header("Authorization", "Bearer " + token)
-                        .content(objectMapper.writeValueAsString(req)))
-                .andExpect(status().isCreated())
-                .andReturn();
+    MvcResult result = mockMvc.perform(post("/api/tickets")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + token)
+                    .content(objectMapper.writeValueAsString(req)))
+            .andExpect(status().isCreated())
+            .andReturn();
 
-        return objectMapper.readTree(result.getResponse().getContentAsString())
-                .get("id").asLong();
-    }
+    Long id = objectMapper.readTree(result.getResponse().getContentAsString())
+            .get("id").asLong();
+
+    // Verifica que el ID es válido antes de continuar
+    assertThat(id).isPositive();
+    return id;
+}
 
     //  POST /api/tickets/{id}/details — Añadir entrada al hilo
 
@@ -108,7 +113,7 @@ class DetailTicketControllerTest {
                             .content("{\"contentDetail\": \"El problema sigue igual\"}"))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.typeDetail").value("T"))
-                    .andExpect(jsonPath("$.author").value("user1"))
+                    .andExpect(jsonPath("$.author").value("david"))
                     .andExpect(jsonPath("$.contentDetail").value("El problema sigue igual"));
         }
 
@@ -207,7 +212,7 @@ class DetailTicketControllerTest {
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.ticketRef").value("INC-" + ticketId))
                     .andExpect(jsonPath("$.ticketTitle").value("PC no enciende"))
-                    .andExpect(jsonPath("$.author").value("user1"))
+                    .andExpect(jsonPath("$.author").value("david"))
                     .andExpect(jsonPath("$.content").value("Puedes revisarlo hoy?"))
                     .andExpect(jsonPath("$.createdAt").isNotEmpty());
         }
@@ -267,7 +272,7 @@ class DetailTicketControllerTest {
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.length()").value(2))
-                    .andExpect(jsonPath("$[0].author").value("user1"))
+                    .andExpect(jsonPath("$[0].author").value("david"))
                     .andExpect(jsonPath("$[1].author").value("admin"))
                     .andExpect(jsonPath("$[0].content").value("Primer comentario"));
         }

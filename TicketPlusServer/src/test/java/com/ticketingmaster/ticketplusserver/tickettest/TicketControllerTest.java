@@ -5,6 +5,7 @@ import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.model.Priority;
 import com.ticketingmaster.ticketplusserver.repo.TicketRepo;
+import com.ticketingmaster.ticketplusserver.repo.DetailTicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 /**
  * Tests de integración para TicketController.
  * Levanta el contexto Spring completo contra PostgreSQL real.
- * Requiere que existan los usuarios 'admin' y 'user1' en la BD.
+ * Requiere que existan los usuarios 'admin' y 'david' en la BD.
  *
  * Coloca en: src/test/java/com/ticketingmaster/ticketplusserver/
  */
@@ -36,6 +37,7 @@ class TicketControllerTest {
     @Autowired private MockMvc                  mockMvc;
     @Autowired private ObjectMapper             objectMapper;
     @Autowired private TicketRepo               ticketRepo;
+    @Autowired private DetailTicketRepo         detailRepo;
     @Autowired private TokenBlacklistRepository blacklistRepo;
 
     private String adminToken;
@@ -47,9 +49,10 @@ class TicketControllerTest {
     @BeforeEach
     void setUp() throws Exception {
         blacklistRepo.deleteAll();
-        ticketRepo.deleteAll();
+        detailRepo.deleteAll();    
+        ticketRepo.deleteAll();    
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("david", "admin123");
+        userToken  = obtenerToken("david", "TU_PASSWORD");
         ticketId   = crearTicket(userToken);
     }
 
@@ -109,7 +112,7 @@ class TicketControllerTest {
                     .andExpect(jsonPath("$.title").value("Solicitud monitor"))
                     .andExpect(jsonPath("$.priority").value("MEDIUM"))
                     .andExpect(jsonPath("$.status").value("Opened"))
-                    .andExpect(jsonPath("$.createdBy").value("user1"))
+                    .andExpect(jsonPath("$.createdBy").value("david"))
                     .andExpect(jsonPath("$.agent").isEmpty())
                     .andExpect(jsonPath("$.createdAt").isNotEmpty());
         }
@@ -168,7 +171,7 @@ class TicketControllerTest {
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].createdBy").value("user1"));
+                    .andExpect(jsonPath("$[0].createdBy").value("david"));
         }
 
         @Test
