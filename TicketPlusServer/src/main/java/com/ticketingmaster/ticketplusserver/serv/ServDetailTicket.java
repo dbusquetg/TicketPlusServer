@@ -53,7 +53,7 @@ public class ServDetailTicket {
                                        DetailTicketRequest request,
                                        String username) {
         DetailTicket detail = crearDetalle(ticketId, request.getContentDetail(), username);
-        return DetailTicketResponse.from(detailRepo.save(detail));
+        return DetailTicketResponse.from(detailRepo.saveAndFlush(detail)); // ← saveAndFlush
     }
  
     //  Añadir comentario (endpoint /comments) 
@@ -70,7 +70,7 @@ public class ServDetailTicket {
     @Transactional
     public CommentResponse añadirComentario(Long ticketId, String content, String username) {
         DetailTicket detail = crearDetalle(ticketId, content, username);
-        return CommentResponse.from(detailRepo.save(detail));
+        return CommentResponse.from(detailRepo.saveAndFlush(detail)); // ← saveAndFlush
     }
  
     //  Obtener comentarios (endpoint /comments GET) 

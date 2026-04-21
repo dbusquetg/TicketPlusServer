@@ -43,7 +43,7 @@ public class ServTicket {
     public TicketResponse crear(TicketRequest request, String username) {
         User creator = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
- 
+
         Ticket ticket = new Ticket(
                 request.getTitle(),
                 request.getDescription(),
@@ -52,10 +52,9 @@ public class ServTicket {
                 request.getSubTypology(),
                 creator
         );
- 
-        return TicketResponse.from(ticketRepo.save(ticket));
+
+        return TicketResponse.from(ticketRepo.saveAndFlush(ticket)); // ← saveAndFlush
     }
-    
     /**
      * Cierra un ticket cambiando su estado a CLOSED.
      * ADMIN puede cerrar cualquier ticket.
