@@ -23,6 +23,9 @@ public class Ticket {
 
     @Column(name = "creation_date", nullable = false)
     private LocalDateTime creationDate;
+    
+    @Column(name = "closed_date")
+    private LocalDateTime closedDate;
 
     @Column(name = "title", nullable = false, length = 150)
     private String title;
@@ -74,6 +77,7 @@ public class Ticket {
         this.subTypology  = subTypology;
         this.createdBy    = createdBy;
         this.creationDate = LocalDateTime.now();
+        this.closedDate   = null;
         this.status       = TicketStatus.UNASSIGNED;
     }
 
@@ -83,6 +87,9 @@ public class Ticket {
 
     public LocalDateTime getCreationDate()           { return creationDate; }
     public void setCreationDate(LocalDateTime date)  { this.creationDate = date; }
+    
+    public LocalDateTime getClosedDate()           { return closedDate; }
+    public void setClosedDate(LocalDateTime date)  { this.closedDate = date; }
 
     public String getTitle()                         { return title; }
     public void setTitle(String title)               { this.title = title; }

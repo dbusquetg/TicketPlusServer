@@ -29,6 +29,9 @@ public class User {
     @Column(nullable = false)
     private boolean active = true;
     
+    @Column(name = "score", nullable = false)
+    private Integer score = 100;
+    
     public User() {}
     
     /**
@@ -41,6 +44,7 @@ public class User {
         this.username     = username;
         this.passwordHash = passwordHash;
         this.role         = role;
+        this.score        = 100;
     }
 
     public Long getId()                        { return id; }
@@ -57,5 +61,8 @@ public class User {
 
     public boolean isActive()                  { return active; }
     public void setActive(boolean active)      { this.active = active; }
+
+    public int getScore()                  { return score; }
+    public void setScore(int score)      { this.score = score; }
     
 }
