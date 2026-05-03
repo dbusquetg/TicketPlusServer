@@ -46,34 +46,30 @@ public class SecurityConfig {
      * Desactiva CSRF para API Stateless, aplica reglas de acceso, implementa el
      * proveedor de autenticación BCrypt y añade el filtro JWT junto con el Spring
      * security.
+     * Usa la keypass generada en el servidor.
      * @param http Seguridad HTTP en formato HttpSecutirty.
      * @return Cadena de filtro de seguridad en formato SecutiryFilterChain
      * @throws Exception General.
      */
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-                // Desactivar CSRF (API stateless con JWT)
-                .csrf(AbstractHttpConfigurer::disable)
+public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    http
+        .csrf(AbstractHttpConfigurer::disable)
+        // Fuerza todas las peticiones a usar HTTPS
+        .requiresChannel(channel ->
+            channel.anyRequest().requiresSecure()
+        )
+        .sessionManagement(session ->
+            session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers("/api/auth/login").permitAll()
+            .anyRequest().authenticated()
+        )
+        .authenticationProvider(authenticationProvider())
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-                // Sin sesión HTTP — cada request se autentica por JWT
-                .sessionManagement(session ->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
-                // Reglas de acceso
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/login").permitAll()  // Login público
-                        .anyRequest().authenticated()                    // Todo lo demás requiere JWT
-                )
-
-                // Proveedor de autenticación (BCrypt + UserDetailsService)
-                .authenticationProvider(authenticationProvider())
-
-                // Añadir el filtro JWT antes del filtro de Spring Security
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
-    }
+    return http.build();
+}
     
     /**
      * Devuelve un AuthenticationProvider con los detalles del usuario y password
