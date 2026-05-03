@@ -19,19 +19,21 @@ public class CorsConfig {
      * Constructor corsfilter que configura y devuelve un objeto CorsFilter para
      * las funciones permitidas y las cabeceras permitidas, asi como credenciales
      * y patrones.
+     * Adaptado para usar la keygen generada al server.
      * @return un objeto CorsFilter.
      */
     @Bean
     public CorsFilter corsFilter() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // Origen específico en lugar de wildcard (requerido con allowCredentials)
+        config.setAllowedOriginPatterns(List.of("https://10.2.99.25:*", "https://localhost:*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return new CorsFilter(source);
     }
 }
