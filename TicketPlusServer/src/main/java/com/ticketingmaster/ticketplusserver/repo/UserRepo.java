@@ -12,11 +12,39 @@ import java.util.Optional;
  * @author David Busquet
  */
 public interface UserRepo extends JpaRepository<User, Long> {
- 
+
     Optional<User> findByUsername(String username);
- 
+
     boolean existsByUsername(String username);
- 
-    /** Devuelve todos los usuarios con un rol concreto. */
+
+    /**
+     * Devuelve todos los usuarios con un rol concreto.
+     *
+     * @param role rol solicitado
+     * @return lista de usuarios con ese rol
+     */
     List<User> findByRole(Role role);
+
+    /**
+     * Devuelve todos los usuarios activos ordenados por username.
+     *
+     * @return lista de usuarios activos
+     */
+    List<User> findByActiveTrueOrderByUsernameAsc();
+
+    /**
+     * Devuelve todos los usuarios activos de un rol concreto ordenados por username.
+     *
+     * @param role rol solicitado
+     * @return lista de usuarios activos con ese rol
+     */
+    List<User> findByRoleAndActiveTrueOrderByUsernameAsc(Role role);
+
+    /**
+     * Cuenta cuántos usuarios activos hay con un rol concreto.
+     *
+     * @param role rol solicitado
+     * @return número de usuarios activos con ese rol
+     */
+    long countByRoleAndActiveTrue(Role role);
 }
