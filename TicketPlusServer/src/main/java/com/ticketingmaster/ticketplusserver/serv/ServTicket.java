@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class ServTicket {
-
+    
+    private static final int PUNTOS_DESCUENTO_POR_TICKET = 5;
     private final TicketRepo ticketRepo;
     private final UserRepo   userRepo;
 
@@ -34,12 +35,15 @@ public class ServTicket {
     /**
      * Crea un nuevo ticket. El estado inicial es siempre UNASSIGNED.
      * El creador se resuelve a partir del username extraído del JWT.
+     *
+     * Tras crear el ticket, descuenta 5 puntos al score del creador.
+     * El score nunca puede bajar de 0.
      */
     @Transactional
     public TicketResponse crear(TicketRequest request, String username) {
         User creator = userRepo.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado: " + username));
-
+ 
         Ticket ticket = new Ticket(
                 request.getTitle(),
                 request.getDescription(),
@@ -48,8 +52,15 @@ public class ServTicket {
                 request.getSubTypology(),
                 creator
         );
-
-        return TicketResponse.from(ticketRepo.saveAndFlush(ticket));
+ 
+        Ticket guardado = ticketRepo.saveAndFlush(ticket);
+ 
+        // Descontar 5 puntos al creador, sin bajar de 0
+        int nuevoScore = Math.max(0, creator.getScore() - PUNTOS_DESCUENTO_POR_TICKET);
+        creator.setScore(nuevoScore);
+        userRepo.save(creator);
+ 
+        return TicketResponse.from(guardado);
     }
 
     /**
