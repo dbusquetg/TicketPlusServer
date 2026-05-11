@@ -34,7 +34,7 @@ public class TicketResponse {
     private Priority      priority;
     private String        status;
     private String        createdBy;
-    private int           createdByPoints;
+    private int           points;
     private String        agent;
     private LocalDateTime createdAt;
     private LocalDateTime resolvedAt;
@@ -53,7 +53,7 @@ public class TicketResponse {
         dto.priority        = ticket.getPriority();
         dto.status          = mapStatus(ticket.getStatus());
         dto.createdBy       = ticket.getCreatedBy().getUsername();
-        dto.createdByPoints = ticket.getCreatedBy().getScore();
+        dto.points          = ticket.getCreatedBy().getScore();
         dto.agent           = ticket.getAgent() != null
                               ? ticket.getAgent().getUsername()
                               : null;
@@ -97,8 +97,8 @@ public class TicketResponse {
     public String getCreatedBy()                      { return createdBy; }
     public void setCreatedBy(String createdBy)        { this.createdBy = createdBy; }
 
-    public int getCreatedByPoints()                   { return createdByPoints; }
-    public void setCreatedByPoints(int points)        { this.createdByPoints = points; }
+    public int getPoints()                            { return points; }
+    public void setPoints(int points)        { this.points = points; }
 
     public String getAgent()                          { return agent; }
     public void setAgent(String agent)                { this.agent = agent; }
