@@ -14,6 +14,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -34,7 +38,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @Transactional
 class UserControllerTest {
 
-    @Autowired private MockMvc                  mockMvc;
+    @Autowired private WebApplicationContext    context;
+    private MockMvc                             mockMvc;
     @Autowired private ObjectMapper             objectMapper;
     @Autowired private TokenBlacklistRepository blacklistRepo;
     @Autowired private DetailTicketRepo         detailRepo;
@@ -44,10 +49,15 @@ class UserControllerTest {
     private String adminToken;
     private String userToken;
 
-    //Setup
+    //  Setup 
 
     @BeforeEach
     void setUp() throws Exception {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .defaultRequest(get("/").secure(true))
+                .build();
         blacklistRepo.deleteAll();
         detailRepo.deleteAll();
         ticketRepo.deleteAll();
@@ -235,7 +245,7 @@ class UserControllerTest {
         }
     }
 
-    //  DELETE /api/users/{username} — Eliminación lógica
+    //  DELETE /api/users/{username} — Eliminación lógica 
 
     @Nested
     @DisplayName("DELETE /api/users/{username} — Eliminación lógica")
@@ -281,7 +291,7 @@ class UserControllerTest {
                     .andExpect(status().isForbidden());
         }
     }
-
+ 
     //  GET /api/users/agents — Listar agentes
 
     @Nested

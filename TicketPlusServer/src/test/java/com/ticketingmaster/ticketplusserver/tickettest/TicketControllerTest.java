@@ -16,6 +16,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -30,14 +34,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * - Campo points (score del creador) en las respuestas
  * - Campo resolvedAt (closedDate) al cerrar tickets
  * - Descuento de 5 puntos al crear un ticket
- *@author David Busquet
+ *
+ * @author David Busquet
  */
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
 class TicketControllerTest {
 
-    @Autowired private MockMvc                  mockMvc;
+    @Autowired private WebApplicationContext    context;
+    private MockMvc                             mockMvc;
     @Autowired private ObjectMapper             objectMapper;
     @Autowired private TicketRepo               ticketRepo;
     @Autowired private DetailTicketRepo         detailRepo;
@@ -47,10 +53,15 @@ class TicketControllerTest {
     private String adminToken;
     private String userToken;
 
-    //Setup
+    // Setup
 
     @BeforeEach
     void setUp() throws Exception {
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .defaultRequest(get("/").secure(true))
+                .build();
         blacklistRepo.deleteAll();
         detailRepo.deleteAll();
         ticketRepo.deleteAll();
@@ -412,7 +423,7 @@ class TicketControllerTest {
                     .andExpect(status().isForbidden());
         }
     }
-
+    
     //  PATCH /api/tickets/{id}/priority — Cambiar prioridad
 
     @Nested
@@ -458,7 +469,7 @@ class TicketControllerTest {
         }
     }
 
-    //  PATCH /api/tickets/{id}/close — Cerrar ticket═
+    //  PATCH /api/tickets/{id}/close — Cerrar ticket
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/close — Cerrar ticket")
