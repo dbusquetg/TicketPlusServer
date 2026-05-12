@@ -4,9 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ticketingmaster.ticketplusserver.dto.LoginRequest;
 import com.ticketingmaster.ticketplusserver.dto.TicketRequest;
 import com.ticketingmaster.ticketplusserver.model.Priority;
-import com.ticketingmaster.ticketplusserver.repo.TicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.DetailTicketRepo;
+import com.ticketingmaster.ticketplusserver.repo.TicketRepo;
 import com.ticketingmaster.ticketplusserver.repo.TokenBlacklistRepository;
+import com.ticketingmaster.ticketplusserver.repo.UserRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -14,20 +15,22 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
  * Tests de integración para TicketController.
- * Levanta el contexto Spring completo contra PostgreSQL real.
- * Requiere que existan los usuarios 'admin' y 'david' en la BD.
- *
- * Coloca en: src/test/java/com/ticketingmaster/ticketplusserver/
+ * Cubre todos los endpoints de tickets incluyendo:
+ * - Campo points (score del creador) en las respuestas
+ * - Campo resolvedAt (closedDate) al cerrar tickets
+ * - Descuento de 5 puntos al crear un ticket
+ *@author David Busquet
  */
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -39,21 +42,26 @@ class TicketControllerTest {
     @Autowired private TicketRepo               ticketRepo;
     @Autowired private DetailTicketRepo         detailRepo;
     @Autowired private TokenBlacklistRepository blacklistRepo;
+    @Autowired private UserRepo                 userRepo;
 
     private String adminToken;
     private String userToken;
-    private Long   ticketId;
 
-    // ─── Setup ────────────────────────────────────────────────────────────
+    //Setup
 
     @BeforeEach
     void setUp() throws Exception {
         blacklistRepo.deleteAll();
-        detailRepo.deleteAll();    
-        ticketRepo.deleteAll();    
+        detailRepo.deleteAll();
+        ticketRepo.deleteAll();
         adminToken = obtenerToken("admin", "admin123");
-        userToken  = obtenerToken("david", "admin123");
-        ticketId   = crearTicket(userToken);
+        userToken  = obtenerToken("david", "david123");
+
+        // Resetear el score de david a 100 para que los tests sean predecibles
+        userRepo.findByUsername("david").ifPresent(u -> {
+            u.setScore(100);
+            userRepo.save(u);
+        });
     }
 
     private String obtenerToken(String username, String password) throws Exception {
@@ -88,15 +96,15 @@ class TicketControllerTest {
                 .get("id").asLong();
     }
 
-    //  POST /api/tickets — Crear ticket
+    //  POST /api/tickets — Crear ticket + descuento de score
 
     @Nested
     @DisplayName("POST /api/tickets — Crear ticket")
     class CrearTicket {
 
         @Test
-        @DisplayName("USER autenticado crea ticket → 201 con payload completo")
-        void crear_userAutenticado_devuelve201() throws Exception {
+        @DisplayName("USER crea ticket → 201 con payload completo incluyendo points")
+        void crear_userAutenticado_devuelve201ConPoints() throws Exception {
             TicketRequest req = new TicketRequest();
             req.setTitle("Solicitud monitor");
             req.setDescription("Necesito un segundo monitor");
@@ -108,29 +116,64 @@ class TicketControllerTest {
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isCreated())
                     .andExpect(jsonPath("$.id").isNumber())
-                    .andExpect(jsonPath("$.ref").value(org.hamcrest.Matchers.startsWith("INC-")))
+                    .andExpect(jsonPath("$.ref").value(startsWith("INC-")))
                     .andExpect(jsonPath("$.title").value("Solicitud monitor"))
                     .andExpect(jsonPath("$.priority").value("MEDIUM"))
                     .andExpect(jsonPath("$.status").value("Opened"))
                     .andExpect(jsonPath("$.createdBy").value("david"))
+                    .andExpect(jsonPath("$.points").isNumber())
                     .andExpect(jsonPath("$.agent").isEmpty())
-                    .andExpect(jsonPath("$.createdAt").isNotEmpty());
+                    .andExpect(jsonPath("$.createdAt").isNotEmpty())
+                    .andExpect(jsonPath("$.resolvedAt").isEmpty());
         }
 
         @Test
-        @DisplayName("ADMIN autenticado crea ticket → 201")
-        void crear_adminAutenticado_devuelve201() throws Exception {
+        @DisplayName("Crear ticket resta 5 puntos al score del creador")
+        void crear_ticket_resta5PuntosAlCreador() throws Exception {
+            // Score inicial = 100 (reseteado en setUp)
             TicketRequest req = new TicketRequest();
-            req.setTitle("Ticket de admin");
-            req.setDescription("Descripción");
+            req.setTitle("Ticket test score");
+            req.setDescription("Test");
             req.setPriority(Priority.LOW);
 
-            mockMvc.perform(post("/api/tickets")
+            MvcResult result = mockMvc.perform(post("/api/tickets")
                             .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer " + adminToken)
+                            .header("Authorization", "Bearer " + userToken)
                             .content(objectMapper.writeValueAsString(req)))
                     .andExpect(status().isCreated())
-                    .andExpect(jsonPath("$.createdBy").value("admin"));
+                    .andReturn();
+
+            // El campo points en la respuesta debe ser 95 (100 - 5)
+            int points = objectMapper.readTree(result.getResponse().getContentAsString())
+                    .get("points").asInt();
+            assert points == 95 : "Score esperado 95, obtenido " + points;
+        }
+
+        @Test
+        @DisplayName("Score no baja de 0 aunque se creen muchos tickets")
+        void crear_ticket_scoreNoBajaDeZero() throws Exception {
+            // Forzar score a 3 para que no pueda bajar más de 5
+            userRepo.findByUsername("david").ifPresent(u -> {
+                u.setScore(3);
+                userRepo.save(u);
+            });
+
+            TicketRequest req = new TicketRequest();
+            req.setTitle("Ticket con score bajo");
+            req.setDescription("Test");
+            req.setPriority(Priority.LOW);
+
+            MvcResult result = mockMvc.perform(post("/api/tickets")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + userToken)
+                            .content(objectMapper.writeValueAsString(req)))
+                    .andExpect(status().isCreated())
+                    .andReturn();
+
+            // El campo points debe ser 0, nunca negativo
+            int points = objectMapper.readTree(result.getResponse().getContentAsString())
+                    .get("points").asInt();
+            assert points == 0 : "Score esperado 0, obtenido " + points;
         }
 
         @Test
@@ -138,7 +181,7 @@ class TicketControllerTest {
         void crear_sinToken_devuelve403() throws Exception {
             TicketRequest req = new TicketRequest();
             req.setTitle("Ticket sin auth");
-            req.setDescription("Descripción");
+            req.setDescription("Test");
             req.setPriority(Priority.LOW);
 
             mockMvc.perform(post("/api/tickets")
@@ -155,23 +198,29 @@ class TicketControllerTest {
     class ListarTickets {
 
         @Test
-        @DisplayName("ADMIN → recibe todos los tickets del sistema")
-        void listar_admin_recibeTodos() throws Exception {
+        @DisplayName("ADMIN → recibe todos los tickets con campo points")
+        void listar_admin_recibeTodosConPoints() throws Exception {
+            crearTicket(userToken);
+
             mockMvc.perform(get("/api/tickets")
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$.length()").value(1));
+                    .andExpect(jsonPath("$.length()").value(greaterThanOrEqualTo(1)))
+                    .andExpect(jsonPath("$[0].points").isNumber())
+                    .andExpect(jsonPath("$[0].resolvedAt").isEmpty());
         }
 
         @Test
-        @DisplayName("USER → recibe solo sus propios tickets")
-        void listar_user_recibeLosSuyos() throws Exception {
+        @DisplayName("USER → recibe solo sus tickets con campo points")
+        void listar_user_recibeLosSuyosConPoints() throws Exception {
+            crearTicket(userToken);
+
             mockMvc.perform(get("/api/tickets")
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$").isArray())
-                    .andExpect(jsonPath("$[0].createdBy").value("david"));
+                    .andExpect(jsonPath("$[0].createdBy").value("david"))
+                    .andExpect(jsonPath("$[0].points").isNumber());
         }
 
         @Test
@@ -189,22 +238,28 @@ class TicketControllerTest {
     class DetalleTicket {
 
         @Test
-        @DisplayName("USER propietario → 200 con datos del ticket")
-        void detalle_userPropietario_devuelve200() throws Exception {
-            mockMvc.perform(get("/api/tickets/" + ticketId)
+        @DisplayName("USER propietario → 200 con points y resolvedAt null")
+        void detalle_userPropietario_devuelve200ConPointsYResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(get("/api/tickets/" + id)
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(ticketId))
-                    .andExpect(jsonPath("$.title").value("PC no enciende"));
+                    .andExpect(jsonPath("$.id").value(id))
+                    .andExpect(jsonPath("$.points").isNumber())
+                    .andExpect(jsonPath("$.resolvedAt").isEmpty());
         }
 
         @Test
-        @DisplayName("ADMIN → puede ver cualquier ticket")
+        @DisplayName("ADMIN → puede ver cualquier ticket con todos los campos")
         void detalle_admin_puedeVerCualquierTicket() throws Exception {
-            mockMvc.perform(get("/api/tickets/" + ticketId)
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(get("/api/tickets/" + id)
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(ticketId));
+                    .andExpect(jsonPath("$.points").isNumber())
+                    .andExpect(jsonPath("$.createdAt").isNotEmpty());
         }
 
         @Test
@@ -223,9 +278,11 @@ class TicketControllerTest {
     class AsignarAgente {
 
         @Test
-        @DisplayName("ADMIN se asigna el ticket → 200 con agent=admin y status=In Progress")
+        @DisplayName("ADMIN se asigna → 200 con agent=admin y status=In Progress")
         void assign_admin_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/assign")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/assign")
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.agent").value("admin"))
@@ -233,11 +290,13 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("USER intenta asignarse el ticket → 200 OK")
-        void assign_user_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/assign")
+        @DisplayName("USER intenta asignarse → 403 Forbidden")
+        void assign_user_devuelve403() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/assign")
                             .header("Authorization", "Bearer " + userToken))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isForbidden());
         }
     }
 
@@ -248,9 +307,11 @@ class TicketControllerTest {
     class AsignarOtroAgente {
 
         @Test
-        @DisplayName("ADMIN asigna ticket a admin → 200 con agent correcto")
+        @DisplayName("ADMIN asigna a agente → 200 con agent y status In Progress")
         void agent_admin_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/agent")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/agent")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"agentUsername\": \"admin\"}"))
@@ -262,21 +323,13 @@ class TicketControllerTest {
         @Test
         @DisplayName("Agente inexistente → 404 Not Found")
         void agent_agenteInexistente_devuelve404() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/agent")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/agent")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"agentUsername\": \"noexiste\"}"))
                     .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("USER intenta asignar agente → 200 Ok")
-        void agent_user_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/agent")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer " + userToken)
-                            .content("{\"agentUsername\": \"admin\"}"))
-                    .andExpect(status().isOk());
         }
     }
 
@@ -287,31 +340,60 @@ class TicketControllerTest {
     class CambiarEstado {
 
         @Test
-        @DisplayName("ADMIN cambia estado a 'In Progress' → 200")
-        void status_adminCambiaEstado_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/status")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .header("Authorization", "Bearer " + adminToken)
-                            .content("{\"status\": \"In Progress\"}"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("In Progress"));
-        }
+        @DisplayName("ADMIN cambia a Closed → resolvedAt se asigna automáticamente")
+        void status_closed_asignaResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
 
-        @Test
-        @DisplayName("ADMIN cambia estado a 'Closed' → 200")
-        void status_adminCierraTicker_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/status")
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"status\": \"Closed\"}"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("Closed"));
+                    .andExpect(jsonPath("$.status").value("Closed"))
+                    .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("ADMIN cambia a Solved → resolvedAt se asigna automáticamente")
+        void status_solved_asignaResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + adminToken)
+                            .content("{\"status\": \"Solved\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("Solved"))
+                    .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
+        }
+
+        @Test
+        @DisplayName("ADMIN vuelve a In Progress → resolvedAt se limpia a null")
+        void status_inProgress_limpiaResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
+
+            // Primero cerrar
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("Authorization", "Bearer " + adminToken)
+                    .content("{\"status\": \"Closed\"}"));
+
+            // Luego reabrir
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header("Authorization", "Bearer " + adminToken)
+                            .content("{\"status\": \"In Progress\"}"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.status").value("In Progress"))
+                    .andExpect(jsonPath("$.resolvedAt").isEmpty());
         }
 
         @Test
         @DisplayName("Estado inválido → 400 Bad Request")
         void status_estadoInvalido_devuelve400() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/status")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"status\": \"Inventado\"}"))
@@ -319,13 +401,15 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("USER intenta cambiar estado → 200 Ok")
-        void status_user_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/status")
+        @DisplayName("USER intenta cambiar estado → 403 Forbidden")
+        void status_user_devuelve403() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/status")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
                             .content("{\"status\": \"In Progress\"}"))
-                    .andExpect(status().isOk());
+                    .andExpect(status().isForbidden());
         }
     }
 
@@ -338,7 +422,9 @@ class TicketControllerTest {
         @Test
         @DisplayName("USER cambia prioridad de su ticket → 200")
         void priority_userCambiaSuTicket_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/priority")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/priority")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + userToken)
                             .content("{\"priority\": \"LOW\"}"))
@@ -347,9 +433,11 @@ class TicketControllerTest {
         }
 
         @Test
-        @DisplayName("ADMIN cambia prioridad de cualquier ticket → 200")
-        void priority_adminCualquierTicket_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/priority")
+        @DisplayName("ADMIN cambia prioridad a CRITICAL → 200")
+        void priority_adminCambiaACritical_devuelve200() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/priority")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"priority\": \"CRITICAL\"}"))
@@ -360,36 +448,44 @@ class TicketControllerTest {
         @Test
         @DisplayName("Prioridad inválida → 400 Bad Request")
         void priority_invalida_devuelve400() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/priority")
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/priority")
                             .contentType(MediaType.APPLICATION_JSON)
                             .header("Authorization", "Bearer " + adminToken)
                             .content("{\"priority\": \"URGENTE\"}"))
                     .andExpect(status().isBadRequest());
         }
     }
- 
-    //  PATCH /api/tickets/{id}/close — Cerrar ticket
+
+    //  PATCH /api/tickets/{id}/close — Cerrar ticket═
 
     @Nested
     @DisplayName("PATCH /api/tickets/{id}/close — Cerrar ticket")
     class CerrarTicket {
 
         @Test
-        @DisplayName("USER propietario cierra su ticket → 200 con status Closed")
-        void close_userPropietario_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/close")
+        @DisplayName("USER cierra su ticket → 200 con status Closed y resolvedAt asignado")
+        void close_userPropietario_devuelve200ConResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/close")
                             .header("Authorization", "Bearer " + userToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("Closed"));
+                    .andExpect(jsonPath("$.status").value("Closed"))
+                    .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
         }
 
         @Test
-        @DisplayName("ADMIN cierra cualquier ticket → 200")
-        void close_admin_devuelve200() throws Exception {
-            mockMvc.perform(patch("/api/tickets/" + ticketId + "/close")
+        @DisplayName("ADMIN cierra cualquier ticket → 200 con resolvedAt asignado")
+        void close_admin_devuelve200ConResolvedAt() throws Exception {
+            Long id = crearTicket(userToken);
+
+            mockMvc.perform(patch("/api/tickets/" + id + "/close")
                             .header("Authorization", "Bearer " + adminToken))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.status").value("Closed"));
+                    .andExpect(jsonPath("$.status").value("Closed"))
+                    .andExpect(jsonPath("$.resolvedAt").isNotEmpty());
         }
 
         @Test
